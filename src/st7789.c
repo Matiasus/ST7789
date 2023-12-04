@@ -28,7 +28,7 @@ const uint8_t INIT_ST7789[] PROGMEM = {
   // ---------------------------------------
   SWRESET, 0, 150,                                      // Software reset, no arguments, delay >120ms
   SLPOUT, 0, 150,                                       // Out of sleep mode, no arguments, delay >120ms
-  COLMOD, 1, 0x55, 10,                                  // Set color mode, 1 argument delay
+  COLMOD, 1, 0x55, 10,                                  // Set color mode, RGB565
   MADCTL, 1, 0xA0, 0,                                   // Memory Data Access Control
                                                         // D7  D6  D5  D4  D3  D2  D1  D0
                                                         // MY  MX  MV  ML RGB  MH   -   -
@@ -69,7 +69,6 @@ const uint8_t INIT_ST7789[] PROGMEM = {
 
 uint16_t cacheIndexRow = 0;                             // @var array cache memory char index row
 uint16_t cacheIndexCol = 0;                             // @var array cache memory char index column
-
 
 /**
  * @desc    Draw line by Bresenham algoritm
@@ -137,7 +136,7 @@ char ST7789_DrawLine (struct st7735 * lcd, uint8_t x1, uint8_t x2, uint8_t y1, u
 }
 
 /**
- * @desc    Fast draw line horizontal
+ * @desc    Fast Draw Line Horizontal
  *
  * @param   struct st7789 *
  * @param   uint8_t xs - start position
@@ -154,13 +153,12 @@ void ST7789_DrawLineHorizontal (struct st7789 * lcd, uint8_t xs, uint8_t xe, uin
     xe = xs;                                            // start change for end
     xs = temp;                                          // end change for start
   }
-
   ST7789_Set_Window (lcd, xs, xe, y, y);                // set window
   ST7789_Send_Color_565 (lcd, color, xe - xs);          // draw pixel by 565 mode
 }
 
 /**
- * @desc    Fast draw line vertical
+ * @desc    Fast Draw Line Vertical
  *
  * @param   struct st7789 *
  * @param   uint8_t x - position
@@ -177,7 +175,6 @@ void ST7789_DrawLineVertical (struct st7789 * lcd, uint8_t x, uint8_t ys, uint8_
     ye = ys;                                            // start change for end
     ys = temp;                                          // end change for start
   }
-
   ST7789_Set_Window (lcd, x, x, ys, ye);                // set window
   ST7789_Send_Color_565 (lcd, color, ye - ys);          // draw pixel by 565 mode
 }
