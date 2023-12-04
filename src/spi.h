@@ -64,11 +64,10 @@
    * @desc    SPI Init
    *
    * @param   uint8_t
-   * @param   uint8_t
    *
    * @return  void
    */
-  void SPI_Init (uint8_t, uint8_t);
+  void SPI_Init (uint8_t);
 
   /**
    * @desc    SPI Write Byte
