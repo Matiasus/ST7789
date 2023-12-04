@@ -118,13 +118,103 @@
   };
 
   /**
-   * @desc    Init st7789 driver
+   * @desc    Draw line by Bresenham algoritm
+   * @surce   https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+   *
+   * @param   struct st7789 *
+   * @param   uint8_t x start position / 0 <= cols <= MAX_X-1
+   * @param   uint8_t x end position   / 0 <= cols <= MAX_X-1
+   * @param   uint8_t y start position / 0 <= rows <= MAX_Y-1
+   * @param   uint8_t y end position   / 0 <= rows <= MAX_Y-1
+   * @param   uint16_t color
+   *
+   * @return  void
+   */
+  char ST7789_DrawLine (struct st7735 *, uint8_t, uint8_t, uint8_t, uint8_t, uint16_t);
+
+  /**
+   * @desc    Fast Draw Line Horizontal
+   *
+   * @param   struct st7789 *
+   * @param   uint8_t xs - start position
+   * @param   uint8_t xe - end position
+   * @param   uint8_t y - position
+   * @param   uint16_t color
+   *
+   * @return void
+   */
+  void ST7789_DrawLineHorizontal (struct st7789 *, uint8_t, uint8_t, uint8_t, uint16_t);
+
+  /**
+   * @desc    Fast Draw Line Vertical
+   *
+   * @param   struct st7789 *
+   * @param   uint8_t x - position
+   * @param   uint8_t ys - start position
+   * @param   uint8_t ye - end position
+   * @param   uint16_t color
+   *
+   * @return  void
+   */
+  void ST7789_DrawLineVertical (struct st7789 *, uint8_t, uint8_t, uint8_t, uint16_t);
+
+  /**
+   * @desc    Draw Pixel
+   *
+   * @param   struct st7789 * lcd
+   * @param   uint8_t x position / 0 <= cols <= MAX_X-1
+   * @param   uint8_t y position / 0 <= rows <= MAX_Y-1
+   * @param   uint16_t color
+   *
+   * @return  void
+   */
+  void ST7789_DrawPixel (struct st7789 *, uint8_t, uint8_t, uint16_t);
+
+  /**
+   * @desc    Init LCD
    *
    * @param   struct st7789 *
    *
    * @return  void
    */
   void ST7789_Init (struct st7789 *);
+
+  /**
+   * --------------------------------------------------------------------------------------------+
+   * PRIVATE FUNCTIONS
+   * --------------------------------------------------------------------------------------------+
+   */
+
+  /**
+   * @desc    Set Window
+   *
+   * @param   struct st7789 * lcd
+   * @param   uint8_t xs - start position
+   * @param   uint8_t xe - end position
+   * @param   uint8_t ys - start position
+   * @param   uint8_t ye - end position
+   *
+   * @return  uint8_t
+   */
+  uint8_t ST7789_Set_Window (struct st7789 *, uint8_t, uint8_t, uint8_t, uint8_t);
+
+  /**
+   * @desc    Write Color Pixels
+   *
+   * @param   struct st7789 * lcd
+   * @param   uint16_t color
+   * @param   uint16_t counter
+   *
+   * @return  void
+   */
+  void ST7789_Send_Color_565 (struct st7789 *, uint16_t, uint16_t);
+
+
+  /**
+   * --------------------------------------------------------------------------------------------+
+   * PRIMITIVE / PRIVATE FUNCTIONS
+   * --------------------------------------------------------------------------------------------+
+   */
 
   /**
    * @desc    Hardware Reset
@@ -134,6 +224,16 @@
    * @return  void
    */
   void ST7789_Reset (struct signal *);
+
+  /**
+   * @desc    Init sequence
+   *
+   * @param   struct st7789 *
+   * @param   const uint8_t *
+   *
+   * @return  void
+   */
+  void ST7789_Init_Sequence (struct st7789 *, const uint8_t *)
 
   /**
    * @desc    Command send
@@ -146,14 +246,24 @@
   void ST7789_Send_Command (struct st7789 *, uint8_t);
 
   /**
-   * @desc    Data send - byte
+   * @desc    8bits data send
    *
    * @param   struct st7789 *
    * @param   uint8_t
    *
    * @return  void
    */
-  void ST7789_Send_Data (struct st7789 *, uint8_t);
+  void ST7789_Send_Data_Byte (struct st7789 *, uint8_t);
+
+  /**
+   * @desc    16bits data send
+   *
+   * @param   struct st7789 *
+   * @param   uint16_t
+   *
+   * @return  void
+   */
+  void ST7789_Send_Data_Word (struct st7789 *, uint16_t);
 
   /**
    * @desc    Delay
@@ -162,6 +272,6 @@
    *
    * @return  void
    */
-  void ST7789_DelayMs (uint8_t);
+  void ST7789_Delay_ms (uint8_t);
 
 #endif
