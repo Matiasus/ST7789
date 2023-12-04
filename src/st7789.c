@@ -121,7 +121,7 @@ char ST7789_DrawLine (struct st7789 * lcd, uint16_t x1, uint16_t x2, uint8_t y1,
   // ---------------------------------------
   if (delta_y < delta_x) {
     D = (delta_y << 1) - delta_x;                       // calculate determinant
-    ST7789_DrawPixel (lcd, x1, y1, color);             // draw first pixel
+    ST7789_DrawPixel (lcd, x1, y1, color);              // draw first pixel
     while (x1 != x2) {                                  // check if x1 equal x2
       x1 += trace_x;                                    // update x1
       if (D >= 0) {                                     // check if determinant is positive
@@ -129,13 +129,13 @@ char ST7789_DrawLine (struct st7789 * lcd, uint16_t x1, uint16_t x2, uint8_t y1,
         D -= 2*delta_x;                                 // update determinant
       }
       D += 2*delta_y;                                   // update deteminant
-      ST7789_DrawPixel (lcd, x1, y1, color);           // draw next pixel
+      ST7789_DrawPixel (lcd, x1, y1, color);            // draw next pixel
     }
   // Bresenham condition for m > 1 (dy > dx)
   // ---------------------------------------
   } else {
     D = delta_y - (delta_x << 1);                       // calculate determinant
-    ST7789_DrawPixel (lcd, x1, y1, color);             // draw first pixel
+    ST7789_DrawPixel (lcd, x1, y1, color);              // draw first pixel
     while (y1 != y2) {                                  // check if y2 equal y1
       y1 += trace_y;                                    // update y1
       if (D <= 0) {                                     // check if determinant is positive
@@ -143,7 +143,7 @@ char ST7789_DrawLine (struct st7789 * lcd, uint16_t x1, uint16_t x2, uint8_t y1,
         D += 2*delta_y;                                 // update determinant
       }
       D -= 2*delta_x;                                   // update deteminant
-      ST7789_DrawPixel (lcd, x1, y1, color);           // draw next pixel
+      ST7789_DrawPixel (lcd, x1, y1, color);            // draw next pixel
     }
   }
 
