@@ -77,11 +77,10 @@
 
   // AREA definition
   // -----------------------------------
-  #define MAX_X                 280                     // max columns / MV = 0 in MADCTL
+  #define MAX_X                 320                     // max columns / MV = 0 in MADCTL
   #define MAX_Y                 240                     // max rows / MV = 0 in MADCTL
   #define SIZE_X                MAX_X - 1               // columns max counter
   #define SIZE_Y                MAX_Y - 1               // rows max counter
-  #define CACHE_SIZE_MEM        (MAX_X * MAX_Y)         // whole pixels
   #define CHARS_COLS_LEN        5                       // number of columns for chars
   #define CHARS_ROWS_LEN        8                       // number of rows for chars
 
@@ -89,9 +88,6 @@
   // -----------------------------------
   #define CLR_BIT(port, bit)                            ( ((port) &= ~(1 << (bit))) )
   #define SET_BIT(port, bit)                            ( ((port) |= (1 << (bit))) )
-  #define IS_BIT_SET(port, bit)                         ( ((port) & (1 << (bit))) ? 1 : 0 )
-  #define IS_BIT_CLR(port, bit)                         ( IS_BIT_SET(port, bit) ? 0 : 1 )
-  #define WAIT_IF_BIT_SET(port, bit)                    { while (IS_BIT_CLR(port, bit)); }
 
   extern const uint8_t INIT_ST7789[];                   // @const Command list ST7789B
 
@@ -118,19 +114,29 @@
   };
 
   /**
+   * @desc    Clear screen
+   *
+   * @param   struct st7789 *
+   * @param   uint16_t
+   *
+   * @return  void
+   */
+  void ST7789_ClearScreen (struct st7789 *, uint16_t);
+
+  /**
    * @desc    Draw line by Bresenham algoritm
    * @surce   https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
    *
    * @param   struct st7789 *
    * @param   uint8_t x start position / 0 <= cols <= MAX_X-1
-   * @param   uint8_t x end position   / 0 <= cols <= MAX_X-1
+   * @param   uint16_t x end position   / 0 <= cols <= MAX_X-1
    * @param   uint8_t y start position / 0 <= rows <= MAX_Y-1
    * @param   uint8_t y end position   / 0 <= rows <= MAX_Y-1
    * @param   uint16_t color
    *
    * @return  void
    */
-  char ST7789_DrawLine (struct st7735 *, uint8_t, uint8_t, uint8_t, uint8_t, uint16_t);
+  char ST7789_DrawLine (struct st7789 *, uint16_t, uint16_t, uint8_t, uint8_t, uint16_t);
 
   /**
    * @desc    Fast Draw Line Horizontal
@@ -143,7 +149,7 @@
    *
    * @return void
    */
-  void ST7789_DrawLineHorizontal (struct st7789 *, uint8_t, uint8_t, uint8_t, uint16_t);
+  void ST7789_FastLineHorizontal (struct st7789 *, uint16_t, uint16_t, uint8_t, uint16_t);
 
   /**
    * @desc    Fast Draw Line Vertical
@@ -156,19 +162,19 @@
    *
    * @return  void
    */
-  void ST7789_DrawLineVertical (struct st7789 *, uint8_t, uint8_t, uint8_t, uint16_t);
+  void ST7789_FastLineVertical (struct st7789 *, uint16_t, uint8_t, uint8_t, uint16_t);
 
   /**
    * @desc    Draw Pixel
    *
    * @param   struct st7789 * lcd
-   * @param   uint8_t x position / 0 <= cols <= MAX_X-1
+   * @param   uint16_t x position / 0 <= cols <= MAX_X-1
    * @param   uint8_t y position / 0 <= rows <= MAX_Y-1
    * @param   uint16_t color
    *
    * @return  void
    */
-  void ST7789_DrawPixel (struct st7789 *, uint8_t, uint8_t, uint16_t);
+  void ST7789_DrawPixel (struct st7789 *, uint16_t, uint8_t, uint16_t);
 
   /**
    * @desc    Init LCD
@@ -189,25 +195,25 @@
    * @desc    Set Window
    *
    * @param   struct st7789 * lcd
-   * @param   uint8_t xs - start position
-   * @param   uint8_t xe - end position
+   * @param   uint16_t xs - start position
+   * @param   uint16_t xe - end position
    * @param   uint8_t ys - start position
    * @param   uint8_t ye - end position
    *
    * @return  uint8_t
    */
-  uint8_t ST7789_Set_Window (struct st7789 *, uint8_t, uint8_t, uint8_t, uint8_t);
+  uint8_t ST7789_Set_Window (struct st7789 *, uint16_t, uint16_t, uint8_t, uint8_t);
 
   /**
    * @desc    Write Color Pixels
    *
    * @param   struct st7789 * lcd
    * @param   uint16_t color
-   * @param   uint16_t counter
+   * @param   uint32_t counter
    *
    * @return  void
    */
-  void ST7789_Send_Color_565 (struct st7789 *, uint16_t, uint16_t);
+  void ST7789_Send_Color_565 (struct st7789 *, uint16_t, uint32_t);
 
   /**
    * --------------------------------------------------------------------------------------------+
@@ -222,7 +228,7 @@
    *
    * @return  void
    */
-  void ST7789_Reset (struct signal *);
+  void ST7789_Reset_HW (struct signal *);
 
   /**
    * @desc    Init sequence
@@ -232,7 +238,7 @@
    *
    * @return  void
    */
-  void ST7789_Init_Sequence (struct st7789 *, const uint8_t *)
+  void ST7789_Init_Sequence (struct st7789 *, const uint8_t *);
 
   /**
    * @desc    Command send

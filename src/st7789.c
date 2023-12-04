@@ -11,7 +11,8 @@
  * @version     1.0
  * @tested      AVR Atmega328
  *
- * @depend      font.h
+ * @depend      st7789.h
+ 
  * --------------------------------------------------------------------------------------------+
  * @descr       Version 1.0
  * --------------------------------------------------------------------------------------------+
@@ -71,6 +72,20 @@ uint16_t cacheIndexRow = 0;                             // @var array cache memo
 uint16_t cacheIndexCol = 0;                             // @var array cache memory char index column
 
 /**
+ * @desc    Clear screen
+ *
+ * @param   struct st7789 *
+ * @param   uint16_t color
+ *
+ * @return  void
+ */
+void ST7789_ClearScreen (struct st7789 * lcd, uint16_t color)
+{
+  ST7789_Set_Window (lcd, 0, SIZE_X, 0, SIZE_Y);        // set whole window 
+  ST7789_Send_Color_565 (lcd, color, 76800UL);          // draw individual pixels
+}
+
+/**
  * @desc    Draw line by Bresenham algoritm
  * @surce   https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
  *
@@ -83,7 +98,7 @@ uint16_t cacheIndexCol = 0;                             // @var array cache memo
  *
  * @return  void
  */
-char ST7789_DrawLine (struct st7735 * lcd, uint8_t x1, uint8_t x2, uint8_t y1, uint8_t y2, uint16_t color)
+char ST7789_DrawLine (struct st7789 * lcd, uint16_t x1, uint16_t x2, uint8_t y1, uint8_t y2, uint16_t color)
 {
   int16_t D;                                            // determinant
   int16_t delta_x, delta_y;                             // deltas
@@ -106,7 +121,7 @@ char ST7789_DrawLine (struct st7735 * lcd, uint8_t x1, uint8_t x2, uint8_t y1, u
   // ---------------------------------------
   if (delta_y < delta_x) {
     D = (delta_y << 1) - delta_x;                       // calculate determinant
-    ST7735_Draw_Pixel (lcd, x1, y1, color);             // draw first pixel
+    ST7789_DrawPixel (lcd, x1, y1, color);             // draw first pixel
     while (x1 != x2) {                                  // check if x1 equal x2
       x1 += trace_x;                                    // update x1
       if (D >= 0) {                                     // check if determinant is positive
@@ -114,13 +129,13 @@ char ST7789_DrawLine (struct st7735 * lcd, uint8_t x1, uint8_t x2, uint8_t y1, u
         D -= 2*delta_x;                                 // update determinant
       }
       D += 2*delta_y;                                   // update deteminant
-      ST7735_Draw_Pixel (lcd, x1, y1, color);           // draw next pixel
+      ST7789_DrawPixel (lcd, x1, y1, color);           // draw next pixel
     }
   // Bresenham condition for m > 1 (dy > dx)
   // ---------------------------------------
   } else {
     D = delta_y - (delta_x << 1);                       // calculate determinant
-    ST7735_Draw_Pixel (lcd, x1, y1, color);             // draw first pixel
+    ST7789_DrawPixel (lcd, x1, y1, color);             // draw first pixel
     while (y1 != y2) {                                  // check if y2 equal y1
       y1 += trace_y;                                    // update y1
       if (D <= 0) {                                     // check if determinant is positive
@@ -128,7 +143,7 @@ char ST7789_DrawLine (struct st7735 * lcd, uint8_t x1, uint8_t x2, uint8_t y1, u
         D += 2*delta_y;                                 // update determinant
       }
       D -= 2*delta_x;                                   // update deteminant
-      ST7735_Draw_Pixel (lcd, x1, y1, color);           // draw next pixel
+      ST7789_DrawPixel (lcd, x1, y1, color);           // draw next pixel
     }
   }
 
@@ -139,14 +154,14 @@ char ST7789_DrawLine (struct st7735 * lcd, uint8_t x1, uint8_t x2, uint8_t y1, u
  * @desc    Fast Draw Line Horizontal
  *
  * @param   struct st7789 *
- * @param   uint8_t xs - start position
- * @param   uint8_t xe - end position
+ * @param   uint16_t xs - start position
+ * @param   uint16_t xe - end position
  * @param   uint8_t y - position
  * @param   uint16_t color
  *
  * @return void
  */
-void ST7789_DrawLineHorizontal (struct st7789 * lcd, uint8_t xs, uint8_t xe, uint8_t y, uint16_t color)
+void ST7789_FastLineHorizontal (struct st7789 * lcd, uint16_t xs, uint16_t xe, uint8_t y, uint16_t color)
 {
   if (xs > xe) {                                        // check if start is > as end
     uint8_t temp = xs;                                  // temporary safe
@@ -161,14 +176,14 @@ void ST7789_DrawLineHorizontal (struct st7789 * lcd, uint8_t xs, uint8_t xe, uin
  * @desc    Fast Draw Line Vertical
  *
  * @param   struct st7789 *
- * @param   uint8_t x - position
+ * @param   uint16_t x - position
  * @param   uint8_t ys - start position
  * @param   uint8_t ye - end position
  * @param   uint16_t color
  *
  * @return  void
  */
-void ST7789_DrawLineVertical (struct st7789 * lcd, uint8_t x, uint8_t ys, uint8_t ye, uint16_t color)
+void ST7789_FastLineVertical (struct st7789 * lcd, uint16_t x, uint8_t ys, uint8_t ye, uint16_t color)
 {
   if (ys > ye) {                                        // check if start is > as end
     uint8_t temp = ys;                                  // temporary safe
@@ -183,13 +198,13 @@ void ST7789_DrawLineVertical (struct st7789 * lcd, uint8_t x, uint8_t ys, uint8_
  * @desc    Draw pixel
  *
  * @param   struct st7789 * lcd
- * @param   uint8_t x position / 0 <= cols <= MAX_X-1
+ * @param   uint16_t x position / 0 <= cols <= MAX_X-1
  * @param   uint8_t y position / 0 <= rows <= MAX_Y-1
  * @param   uint16_t color
  *
  * @return  void
  */
-void ST7789_DrawPixel (struct st7789 * lcd, uint8_t x, uint8_t y, uint16_t color)
+void ST7789_DrawPixel (struct st7789 * lcd, uint16_t x, uint8_t y, uint16_t color)
 {
   ST7789_Set_Window (lcd, x, x, y, y);                  // set window
   ST7789_Send_Color_565 (lcd, color, 1);                // draw pixel by 565 mode
@@ -206,7 +221,7 @@ void ST7789_Init (struct st7789 * lcd)
 {
   // SPI Init (cs, settings)
   // ----------------------------------------------------------------
-  SPI_Init (SPI_MASTER | SPI_MODE_0 | SPI_MSB_FIRST | SPI_FOSC_DIV_16);
+  SPI_Init (SPI_MASTER | SPI_MODE_0 | SPI_MSB_FIRST | SPI_FOSC_DIV_4);
 
   // DDR
   // --------------------------------------
@@ -226,7 +241,7 @@ void ST7789_Init (struct st7789 * lcd)
 
   // HW RESET
   // --------------------------------------
-  ST7789_Reset (lcd->rs);
+  ST7789_Reset_HW (lcd->rs);
 
   // INIT SEQUENCE
   // --------------------------------------
@@ -243,14 +258,14 @@ void ST7789_Init (struct st7789 * lcd)
  * @desc    Set window
  *
  * @param   struct st7789 * lcd
- * @param   uint8_t xs - start position
- * @param   uint8_t xe - end position
+ * @param   uint16_t xs - start position
+ * @param   uint16_t xe - end position
  * @param   uint8_t ys - start position
  * @param   uint8_t ye - end position
  *
  * @return  uint8_t
  */
-uint8_t ST7789_Set_Window (struct st7789 * lcd, uint8_t xs, uint8_t xe, uint8_t ys, uint8_t ye)
+uint8_t ST7789_Set_Window (struct st7789 * lcd, uint16_t xs, uint16_t xe, uint8_t ys, uint8_t ye)
 {
   if ((xs > xe) || (xe > SIZE_X) ||
       (ys > ye) || (ys > SIZE_Y)) {
@@ -273,11 +288,11 @@ uint8_t ST7789_Set_Window (struct st7789 * lcd, uint8_t xs, uint8_t xe, uint8_t 
  *
  * @param   struct st7789 * lcd
  * @param   uint16_t color
- * @param   uint16_t counter
+ * @param   uint32_t counter
  *
  * @return  void
  */
-void ST7789_Send_Color_565 (struct st7789 * lcd, uint16_t color, uint16_t count)
+void ST7789_Send_Color_565 (struct st7789 * lcd, uint16_t color, uint32_t count)
 {
   ST7789_Send_Command (lcd, RAMWR);                     // access to RAM
   while (count--) {
@@ -326,16 +341,16 @@ void ST7789_Init_Sequence (struct st7789 * lcd, const uint8_t * list)
   while (loops--) {
     // COMMAND
     // ------------------------------------
-    ST7789_Send_Command (lcd, pgm_read_byte (list++));  // send command
+    ST7789_Send_Command (lcd, pgm_read_byte (list++));
     // ARGUMENTS
     // ------------------------------------
-    arguments = pgm_read_byte (list++);                 // number of command arguments
+    arguments = pgm_read_byte (list++);
     while (arguments--) {
-      ST7789_Send_Data (lcd, pgm_read_byte (list++));   // send argument
+      ST7789_Send_Data_Byte (lcd, pgm_read_byte (list++));
     }
     // DELAY
     // ------------------------------------
-    ST7789_Delay_ms (pgm_read_byte (list++));            // delay
+    ST7789_Delay_ms (pgm_read_byte (list++));
   }
 }
 
@@ -395,7 +410,7 @@ void ST7789_Send_Data_Word (struct st7789 * lcd, uint16_t data)
  *
  * @return  void
  */
-void ST7735_Delay_ms (uint8_t time)
+void ST7789_Delay_ms (uint8_t time)
 {
   while (time--) {
     _delay_ms(1);                                         // 1ms delay
