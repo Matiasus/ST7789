@@ -30,11 +30,11 @@
  *
  * @return  void
  */
-void SPI_Init (uint8_t cs, uint8_t settings)
+void SPI_Init (uint8_t settings)
 {
   // SPI PORT Init
   // ----------------------------------------------------------------
-  SPI_DDR |= (1 << cs) | (1 << SPI_MOSI) | (1 << SPI_SCK);
+  SPI_DDR |= (1 << SPI_MOSI) | (1 << SPI_SCK);
   SPI_DDR &= ~(1 << SPI_MISO);
   SPI_PORT |= (1 << SPI_MISO);
 
