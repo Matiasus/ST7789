@@ -33,11 +33,12 @@ int main (void)
   struct signal bl = { .ddr = &DDRB, .port = &PORTB, .pin = 1 };          // Back Light
   struct signal dc = { .ddr = &DDRB, .port = &PORTB, .pin = 0 };          // Data / Command
   struct signal rs = { .ddr = &DDRD, .port = &PORTD, .pin = 7 };          // Reset
+
   struct st7789 lcd = { .cs = &cs, .bl = &bl, .dc = &dc, .rs = &rs };     // LCD struct
 
   // LCD
   // ----------------------------------------------------------
-  ST7789_Init (&lcd);                                                     // init lcd 1
+  ST7789_Init (&lcd);                                                     // init lcd
 
   // EXIT
   // ----------------------------------------------------------
