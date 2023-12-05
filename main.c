@@ -39,10 +39,17 @@ int main (void)
 
   // LCD
   // ----------------------------------------------------------
-  ST7789_Init (&lcd);                                                     // init lcd
-  ST7789_ClearScreen (&lcd, 0xcde0);
-  ST7789_FastLineHorizontal (&lcd, 10, 319, 15, 0x0ddf);
-  ST7789_FastLineVertical (&lcd, 160, 0, 239, 0x0c0c);
+  ST7789_Init (&lcd);
+  ST7789_ClearScreen (&lcd, BLUE);
+  ST7789_FastLineHorizontal (&lcd, 10, 319, 15, RED);
+  ST7789_FastLineVertical (&lcd, 160, 0, 239, RED);
+  
+  _delay_ms (1000);
+  ST7735_InvertColorOn (&lcd);
+  
+  _delay_ms (1000);
+  ST7735_InvertColorOff (&lcd);
+  
   // EXIT
   // ----------------------------------------------------------
   return 0;

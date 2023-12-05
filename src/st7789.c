@@ -30,7 +30,7 @@ const uint8_t INIT_ST7789[] PROGMEM = {
   SWRESET, 0, 150,                                      // Software reset, no arguments, delay >120ms
   SLPOUT, 0, 150,                                       // Out of sleep mode, no arguments, delay >120ms
   COLMOD, 1, 0x55, 10,                                  // Set color mode, RGB565
-  MADCTL, 1, 0xA0, 0,                                   // Memory Data Access Control
+  MADCTL, 1, 0xA8, 0,                                   // Memory Data Access Control
                                                         // D7  D6  D5  D4  D3  D2  D1  D0
                                                         // MY  MX  MV  ML RGB  MH   -   -
                                                         // ------------------------------
@@ -208,6 +208,54 @@ void ST7789_DrawPixel (struct st7789 * lcd, uint16_t x, uint8_t y, uint16_t colo
 {
   ST7789_Set_Window (lcd, x, x, y, y);                  // set window
   ST7789_Send_Color_565 (lcd, color, 1);                // draw pixel by 565 mode
+}
+
+/**
+ * @desc    RAM Content Show
+ *
+ * @param   struct st7789 * lcd
+ *
+ * @return  void
+ */
+void ST7789_RAM_ContentShow (struct st7789 * lcd)
+{
+  ST7789_Send_Command (lcd, DISPON);                     // display content on
+}
+
+/**
+ * @desc    RAM Content Hide
+ *
+ * @param   struct st7789 * lcd
+ *
+ * @return  void
+ */
+void ST7735_RAM_ContentHide (struct st7789 * lcd)
+{
+  ST7789_Send_Command (lcd, DISPOFF);                    // display content off
+}
+
+/**
+ * @desc    Inversion On
+ *
+ * @param   struct st7789 * lcd
+ *
+ * @return  void
+ */
+void ST7735_InvertColorOn (struct st7789 * lcd)
+{
+  ST7789_Send_Command (lcd, INVON);                      // inversion on
+}
+
+/**
+ * @desc    Inversion Off
+ *
+ * @param   struct st7789 * lcd
+ *
+ * @return  void
+ */
+void ST7735_InvertColorOff (struct st7789 * lcd)
+{
+  ST7789_Send_Command (lcd, INVOFF);                     // inversion off
 }
 
 /**

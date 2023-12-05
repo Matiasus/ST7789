@@ -41,7 +41,7 @@ void SPI_Init (uint8_t settings)
   // SPI init
   // ----------------------------------------------------------------
   SPI_SPCR = settings | (1 << SPE);
-  SPI_SPSR &= ~(1 << SPI2X);
+  SPI_SPSR |= (1 << SPI2X);
 }
 
 /**

@@ -73,12 +73,14 @@
   // -----------------------------------
   #define BLACK                 0x0000
   #define WHITE                 0xFFFF
-  #define RED                   0xF000
+  #define RED                   0xFC00
+  #define BLUE                  0x00CF
 
   // AREA definition
   // -----------------------------------
   #define MAX_X                 320                     // max columns / MV = 0 in MADCTL
   #define MAX_Y                 240                     // max rows / MV = 0 in MADCTL
+  #define WINDOW_PIXELS         MAX_X * MAX_Y
   #define SIZE_X                MAX_X - 1               // columns max counter
   #define SIZE_Y                MAX_Y - 1               // rows max counter
   #define CHARS_COLS_LEN        5                       // number of columns for chars
@@ -184,6 +186,42 @@
    * @return  void
    */
   void ST7789_Init (struct st7789 *);
+  
+  /**
+   * @desc    RAM Content Show
+   *
+   * @param   struct st7789 * lcd
+   *
+   * @return  void
+   */
+  void ST7789_RAM_ContentShow (struct st7789 *);
+  
+  /**
+   * @desc    RAM Content Hide
+   *
+   * @param   struct st7789 * lcd
+   *
+   * @return  void
+   */
+  void ST7735_RAM_ContentHide (struct st7789 *);
+
+  /**
+   * @desc    Inversion On
+   *
+   * @param   struct st7789 * lcd
+   *
+   * @return  void
+   */
+  void ST7735_InvertColorOn (struct st7789 *);
+
+  /**
+   * @desc    Inversion Off
+   *
+   * @param   struct st7789 * lcd
+   *
+   * @return  void
+   */
+  void ST7735_InvertColorOff (struct st7789 *);
 
   /**
    * --------------------------------------------------------------------------------------------+
