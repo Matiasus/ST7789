@@ -29,45 +29,37 @@
 
   // Success / Error
   // -----------------------------------
-  #define ST7789_SUCCESS        0
-  #define ST7789_ERROR          1
-
-  // PORT/PIN definition
-  // -----------------------------------
-  #define PORT                  PORTB
-  #define DDR                   DDRB
-  #define ST7789_MOSI           3     // SDA
-  #define ST7789_MISO           4
-  #define ST7789_SCK            5     // SCL
+  #define ST77XX_SUCCESS        0
+  #define ST77XX_ERROR          1
 
   // Command definition
   // -----------------------------------
-  #define NOP                   0x00  // This command is empty command.
-  #define SWRESET               0x01  // The display module performs a software reset, registers are written with their SW reset default values
+  #define ST77XX_NOP            0x00  // This command is empty command.
+  #define ST77XX_SWRESET        0x01  // The display module performs a software reset, registers are written with their SW reset default values
 
-  #define SLPIN                 0x10  // In this mode the DC/DC converter is stopped, internal oscillator is stopped, and panel scanning is stopped.
-  #define SLPOUT                0x11  // In this mode the DC/DC converter is enable, internal display oscillator is started, and panel scanning is started
-  #define PTLON                 0x12  // This command turns on Partial mode. The partial mode window is described by the Partial Area command (30h)
-  #define NORON                 0x13  // This command turns the display to normal mode, Normal display mode on means partial mode off
+  #define ST77XX_SLPIN          0x10  // In this mode the DC/DC converter is stopped, internal oscillator is stopped, and panel scanning is stopped.
+  #define ST77XX_SLPOUT         0x11  // In this mode the DC/DC converter is enable, internal display oscillator is started, and panel scanning is started
+  #define ST77XX_PTLON          0x12  // This command turns on Partial mode. The partial mode window is described by the Partial Area command (30h)
+  #define ST77XX_NORON          0x13  // This command turns the display to normal mode, Normal display mode on means partial mode off
 
-  #define INVOFF                0x20  // This command is used to recover from display inversion mode
-  #define INVON                 0x21  // This command is used to recover from display inversion mode.
-  #define DISPOFF               0x28  // In this mode, the output from Frame Memory is disabled and blank page inserted
-  #define DISPON                0x29  // This command is used to recover from DISPLAY OFF mode.
-  #define CASET                 0x2A  // Column Address Set, XS, XE [15:0] < 239 (00Efh)): MV=”0”, XS, XE [15:0] < 319 (013Fh)): MV=”1”
-  #define RASET                 0x2B  // Row Address Set, 0 < YS [15:0] < YE [15:0] < 319 (013fh)): MV=”0”, 0 < YS [15:0] < YE [15:0] < 239 (00EFh)): MV=”1”
-  #define RAMWR                 0x2C  // Memory Write, This command is used to transfer data from MCU to frame memory.
+  #define ST77XX_INVOFF         0x20  // This command is used to recover from display inversion mode
+  #define ST77XX_INVON          0x21  // This command is used to recover from display inversion mode.
+  #define ST77XX_DISPOFF        0x28  // In this mode, the output from Frame Memory is disabled and blank page inserted
+  #define ST77XX_DISPON         0x29  // This command is used to recover from DISPLAY OFF mode.
+  #define ST77XX_CASET          0x2A  // Column Address Set, XS, XE [15:0] < 239 (00Efh)): MV=”0”, XS, XE [15:0] < 319 (013Fh)): MV=”1”
+  #define ST77XX_RASET          0x2B  // Row Address Set, 0 < YS [15:0] < YE [15:0] < 319 (013fh)): MV=”0”, 0 < YS [15:0] < YE [15:0] < 239 (00EFh)): MV=”1”
+  #define ST77XX_RAMWR          0x2C  // Memory Write, This command is used to transfer data from MCU to frame memory.
 
-  #define PTLAR                 0x30  // Partial Area
-  #define MADCTL                0x36  // Memory Data Access Control
-  #define COLMOD                0x3A  // Interface Pixel Format
-  #define TEOFF                 0x34  // Tearing Effect Line OFF
-  #define TEON                  0x35  // Tearing Effect Line On, This command is used to turn ON the Tearing Effect output signal from the TE signal line
-  #define VSCSAD                0x37  // Vertical Scroll Start Address of RAM
-  #define IDMOFF                0x38  // Idle Mode Off
-  #define IDMON                 0x39  // Idle Mode On
+  #define ST77XX_PTLAR          0x30  // Partial Area
+  #define ST77XX_MADCTL         0x36  // Memory Data Access Control
+  #define ST77XX_COLMOD         0x3A  // Interface Pixel Format
+  #define ST77XX_TEOFF          0x34  // Tearing Effect Line OFF
+  #define ST77XX_TEON           0x35  // Tearing Effect Line On, This command is used to turn ON the Tearing Effect output signal from the TE signal line
+  #define ST77XX_VSCSAD         0x37  // Vertical Scroll Start Address of RAM
+  #define ST77XX_IDMOFF         0x38  // Idle Mode Off
+  #define ST77XX_IDMON          0x39  // Idle Mode On
 
-  #define WRCTRLD               0x53  // Write CTRL Display
+  #define ST77XX_WRCTRLD        0x53  // Write CTRL Display
 
   // Colors
   // -----------------------------------
@@ -88,8 +80,8 @@
 
   // FUNCTION macros
   // -----------------------------------
-  #define CLR_BIT(port, bit)                            ( ((port) &= ~(1 << (bit))) )
-  #define SET_BIT(port, bit)                            ( ((port) |= (1 << (bit))) )
+  #define CLR_BIT(port, bit)   (((port) &= ~(1<<(bit))))
+  #define SET_BIT(port, bit)   (((port) |=  (1<<(bit))))
 
   extern const uint8_t INIT_ST7789[];                   // @const Command list ST7789B
 
@@ -114,6 +106,52 @@
     struct signal * dc;                                 // Data / Command
     struct signal * rs;                                 // Reset
   };
+
+
+  // Memory Data Access Control
+  // D7  D6  D5  D4  D3  D2  D1  D0
+  // MY  MX  MV  ML RGB  MH   -   -
+  // ------------------------------
+  // MV  MX  MY -> {MV (row / column exchange) MX (column address order), MY (row address order)}
+  // ------------------------------
+  //  0   0   0 -> begin left-up corner, end right-down corner
+  //               left-right (normal view)
+  //  0   0   1 -> begin left-down corner, end right-up corner
+  //               left-right (Y-mirror)
+  //  0   1   0 -> begin right-up corner, end left-down corner
+  //               right-left (X-mirror)
+  //  0   1   1 -> begin right-down corner, end left-up corner
+  //               right-left (X-mirror, Y-mirror)
+  //  1   0   0 -> begin left-up corner, end right-down corner
+  //               up-down (X-Y exchange)
+  //  1   0   1 -> begin left-down corner, end right-up corner
+  //               down-up (X-Y exchange, Y-mirror)
+  //  1   1   0 -> begin right-up corner, end left-down corner
+  //               up-down (X-Y exchange, X-mirror)
+  //  1   1   1 -> begin right-down corner, end left-up corner
+  //               down-up (X-Y exchange, X-mirror, Y-mirror)
+  // ------------------------------
+  //  ML: vertical refresh order
+  //      0 -> refresh top to bottom
+  //      1 -> refresh bottom to top
+  // ------------------------------
+  // RGB: filter panel
+  //      0 -> RGB
+  //      1 -> BGR
+  // ------------------------------
+  //  MH: horizontal refresh order
+  //      0 -> refresh left to right
+  //      1 -> refresh right to left
+  #define ST77XX_RGB            0x00                    // RGB Mode
+  #define ST77XX_BGR            0x08                    // BGR Mode 
+  #define ST77XX_NORMAL         0x00                    // Normal   
+  #define ST77XX_Y_MIRROR       0x80                    // X-Mirror
+  #define ST77XX_X_MIRROR       0x40                    // Y-Mirror
+  #define ST77XX_XY_MIRROR      0xC0                    // X-Mirror, Y-Mirror
+  #define ST77XX_XY_CHANGE      0x20                    // X-Y Exchange
+  #define ST77XX_XY_CHANGE_Y    0xA0                    // X-Y Exchange Y-Mirror
+  #define ST77XX_XY_CHANGE_X    0x60                    // X-Y Exchange X-Mirror
+  #define ST77XX_XY_CHANGE_XY   0xD0                    // X-Y Exchange X-Mirror Y-Mirror
 
   /**
    * @desc    Clear screen
@@ -182,11 +220,12 @@
    * @desc    Init LCD
    *
    * @param   struct st7789 *
+   * @param   uint8_t
    *
    * @return  void
    */
-  void ST7789_Init (struct st7789 *);
-  
+  void ST7789_Init (struct st7789 *, uint8_t);
+
   /**
    * @desc    RAM Content Show
    *
@@ -195,7 +234,7 @@
    * @return  void
    */
   void ST7789_RAM_ContentShow (struct st7789 *);
-  
+
   /**
    * @desc    RAM Content Hide
    *
@@ -222,6 +261,16 @@
    * @return  void
    */
   void ST7735_InvertColorOff (struct st7789 *);
+
+  /**
+   * @desc    Set Configuration LCD
+   *
+   * @param   struct st7789 * lcd
+   * @param   uint8_t
+   *
+   * @return  void
+   */
+  void ST7789_SetConfiguration (struct st7789 *, uint8_t);
 
   /**
    * --------------------------------------------------------------------------------------------+
