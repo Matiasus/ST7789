@@ -12,7 +12,7 @@
  * @tested      AVR Atmega328
  *
  * @depend      st7789.h
- 
+ *
  * --------------------------------------------------------------------------------------------+
  * @descr       Version 1.0
  * --------------------------------------------------------------------------------------------+
@@ -30,41 +30,6 @@ const uint8_t INIT_ST7789[] PROGMEM = {
   SWRESET, 0, 150,                                      // Software reset, no arguments, delay >120ms
   SLPOUT, 0, 150,                                       // Out of sleep mode, no arguments, delay >120ms
   COLMOD, 1, 0x55, 10,                                  // Set color mode, RGB565
-  MADCTL, 1, 0xA8, 0,                                   // Memory Data Access Control
-                                                        // D7  D6  D5  D4  D3  D2  D1  D0
-                                                        // MY  MX  MV  ML RGB  MH   -   -
-                                                        // ------------------------------
-                                                        // MV  MX  MY -> {MV (row / column exchange) MX (column address order), MY (row address order)}
-                                                        // ------------------------------
-                                                        //  0   0   0 -> begin left-up corner, end right-down corner
-                                                        //               left-right (normal view)
-                                                        //  0   0   1 -> begin left-down corner, end right-up corner
-                                                        //               left-right (Y-mirror)
-                                                        //  0   1   0 -> begin right-up corner, end left-down corner
-                                                        //               right-left (X-mirror)
-                                                        //  0   1   1 -> begin right-down corner, end left-up corner
-                                                        //               right-left (X-mirror, Y-mirror)
-                                                        //  1   0   0 -> begin left-up corner, end right-down corner
-                                                        //               up-down (X-Y exchange)
-                                                        //  1   0   1 -> begin left-down corner, end right-up corner
-                                                        //               down-up (X-Y exchange, Y-mirror)
-                                                        //  1   1   0 -> begin right-up corner, end left-down corner
-                                                        //               up-down (X-Y exchange, X-mirror)
-                                                        //  1   1   1 -> begin right-down corner, end left-up corner
-                                                        //               down-up (X-Y exchange, X-mirror, Y-mirror)
-                                                        // ------------------------------
-                                                        //  ML: vertical refresh order
-                                                        //      0 -> refresh top to bottom
-                                                        //      1 -> refresh bottom to top
-                                                        // ------------------------------
-                                                        // RGB: filter panel
-                                                        //      0 -> RGB
-                                                        //      1 -> BGR
-                                                        // ------------------------------
-                                                        //  MH: horizontal refresh order
-                                                        //      0 -> refresh left to right
-                                                        //      1 -> refresh right to left
-                                                        // 0xA0 = 1010 0000
   DISPON, 0, 200                                        // Display turn on
 };
 
@@ -147,7 +112,7 @@ char ST7789_DrawLine (struct st7789 * lcd, uint16_t x1, uint16_t x2, uint8_t y1,
     }
   }
 
-  return ST7789_SUCCESS;                                 // success return
+  return ST77XX_SUCCESS;                                 // success return
 }
 
 /**
@@ -219,7 +184,7 @@ void ST7789_DrawPixel (struct st7789 * lcd, uint16_t x, uint8_t y, uint16_t colo
  */
 void ST7789_RAM_ContentShow (struct st7789 * lcd)
 {
-  ST7789_Send_Command (lcd, DISPON);                     // display content on
+  ST7789_Send_Command (lcd, ST77XX_DISPON);             // display content on
 }
 
 /**
@@ -231,7 +196,7 @@ void ST7789_RAM_ContentShow (struct st7789 * lcd)
  */
 void ST7735_RAM_ContentHide (struct st7789 * lcd)
 {
-  ST7789_Send_Command (lcd, DISPOFF);                    // display content off
+  ST7789_Send_Command (lcd, ST77XX_DISPOFF);            // display content off
 }
 
 /**
@@ -243,7 +208,7 @@ void ST7735_RAM_ContentHide (struct st7789 * lcd)
  */
 void ST7735_InvertColorOn (struct st7789 * lcd)
 {
-  ST7789_Send_Command (lcd, INVON);                      // inversion on
+  ST7789_Send_Command (lcd, ST77XX_INVON);              // inversion on
 }
 
 /**
@@ -255,17 +220,32 @@ void ST7735_InvertColorOn (struct st7789 * lcd)
  */
 void ST7735_InvertColorOff (struct st7789 * lcd)
 {
-  ST7789_Send_Command (lcd, INVOFF);                     // inversion off
+  ST7789_Send_Command (lcd, ST77XX_INVOFF);             // inversion off
+}
+
+/**
+ * @desc    Set Configuration LCD
+ *
+ * @param   struct st7789 * lcd
+ * @param   uint8_t
+ *
+ * @return  void
+ */
+void ST7789_SetConfiguration (struct st7789 * lcd, uint8_t configuration)
+{
+  ST7789_Send_Command (lcd, ST77XX_MADCTL);             // Memory Data Access Control
+  ST7789_Send_Data_Byte (lcd, configuration);           // set configuration like rotation, refresh,... 
 }
 
 /**
  * @desc    Init st7789 driver
  *
  * @param   struct st7789 *
+ * @param   uint8_t
  *
  * @return  void
  */
-void ST7789_Init (struct st7789 * lcd)
+void ST7789_Init (struct st7789 * lcd, uint8_t configuration)
 {
   // SPI Init (cs, settings)
   // ----------------------------------------------------------------
@@ -294,6 +274,10 @@ void ST7789_Init (struct st7789 * lcd)
   // INIT SEQUENCE
   // --------------------------------------
   ST7789_Init_Sequence (lcd, INIT_ST7789);
+  
+  // SET CONFIGURATION
+  // --------------------------------------
+  ST7789_SetConfiguration (lcd, configuration);
 }
 
 /**
@@ -317,18 +301,18 @@ uint8_t ST7789_Set_Window (struct st7789 * lcd, uint16_t xs, uint16_t xe, uint8_
 {
   if ((xs > xe) || (xe > SIZE_X) ||
       (ys > ye) || (ys > SIZE_Y)) {
-    return ST7789_ERROR;                                // out of range
+    return ST77XX_ERROR;                                // out of range
   }
 
-  ST7789_Send_Command (lcd, CASET);                     // column address set
+  ST7789_Send_Command (lcd, ST77XX_CASET);              // column address set
   ST7789_Send_Data_Word (lcd, 0x0000 | xs);             // send start x position
   ST7789_Send_Data_Word (lcd, 0x0000 | xe);             // send end x position
 
-  ST7789_Send_Command (lcd, RASET);                     // row address set
+  ST7789_Send_Command (lcd, ST77XX_RASET);              // row address set
   ST7789_Send_Data_Word (lcd, 0x0000 | ys);             // send start y position
   ST7789_Send_Data_Word (lcd, 0x0000 | ye);             // send end y position
 
-  return ST7789_SUCCESS;                                // success
+  return ST77XX_SUCCESS;                                // success
 }
 
 /**
@@ -342,7 +326,7 @@ uint8_t ST7789_Set_Window (struct st7789 * lcd, uint16_t xs, uint16_t xe, uint8_
  */
 void ST7789_Send_Color_565 (struct st7789 * lcd, uint16_t color, uint32_t count)
 {
-  ST7789_Send_Command (lcd, RAMWR);                     // access to RAM
+  ST7789_Send_Command (lcd, ST77XX_RAMWR);              // access to RAM
   while (count--) {
     ST7789_Send_Data_Word (lcd, color);                 // write color
   }
