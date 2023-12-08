@@ -36,9 +36,16 @@ int main (void)
 
   struct st7789 lcd = { .cs = &cs, .bl = &bl, .dc = &dc, .rs = &rs };     // LCD struct
 
-  // LCD
+  // LCD INIT
   // ----------------------------------------------------------
-  ST7789_Init (&lcd, ST77XX_NORMAL | ST77XX_RGB);
+  ST7789_Init (&lcd, 0xA0);
+
+  // DRAWING
+  ST7789_ClearScreen (&lcd, RED);
+  ST7789_DrawLine (&lcd, 10, 150, 10, 150, RED);
+
+  ST7789_RAM_ContentShow (&lcd);
+  ST7735_InvertColorOn (&lcd);
 
   // EXIT
   // ----------------------------------------------------------

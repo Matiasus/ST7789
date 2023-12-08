@@ -107,7 +107,6 @@
     struct signal * rs;                                 // Reset
   };
 
-
   // Memory Data Access Control
   // D7  D6  D5  D4  D3  D2  D1  D0
   // MY  MX  MV  ML RGB  MH   -   -

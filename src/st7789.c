@@ -24,13 +24,14 @@
 const uint8_t INIT_ST7789[] PROGMEM = {
   // NUMBER OF COMMANDS
   // ---------------------------------------
-  4,                                                    // number of initializers
+  5,                                                    // number of initializers
   // COMMANDS WITH DELAY AND ARGUMENTS
   // ---------------------------------------
-  SWRESET, 0, 150,                                      // Software reset, no arguments, delay >120ms
-  SLPOUT, 0, 150,                                       // Out of sleep mode, no arguments, delay >120ms
-  COLMOD, 1, 0x55, 10,                                  // Set color mode, RGB565
-  DISPON, 0, 200                                        // Display turn on
+  ST77XX_SWRESET, 0, 150,                               // Software reset, no arguments, delay >120ms
+  ST77XX_SLPOUT, 0, 150,                                // Out of sleep mode, no arguments, delay >120ms
+  ST77XX_COLMOD, 1, 0x55, 10,                           // Set color mode, RGB565
+  ST77XX_MADCTL, 1, 0xA0, 0,
+  ST77XX_DISPON, 0, 200                                 // Display turn on
 };
 
 uint16_t cacheIndexRow = 0;                             // @var array cache memory char index row
@@ -277,7 +278,7 @@ void ST7789_Init (struct st7789 * lcd, uint8_t configuration)
   
   // SET CONFIGURATION
   // --------------------------------------
-  ST7789_SetConfiguration (lcd, configuration);
+  //ST7789_SetConfiguration (lcd, configuration);
 }
 
 /**
