@@ -24,7 +24,7 @@
 const uint8_t INIT_ST7789[] PROGMEM = {
   // NUMBER OF COMMANDS
   // ---------------------------------------
-  5,                                                    // number of initializers
+  4,                                                    // number of initializers
   // COMMANDS WITH DELAY AND ARGUMENTS
   // ---------------------------------------
   SWRESET, 0, 150,                                      // Software reset, no arguments, delay >120ms
