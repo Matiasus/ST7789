@@ -27,29 +27,19 @@
  */
 int main (void)
 {
-
   // LCD - init struct
   // ----------------------------------------------------------
   struct signal cs = { .ddr = &DDRB, .port = &PORTB, .pin = 2 };          // Chip Select
   struct signal bl = { .ddr = &DDRB, .port = &PORTB, .pin = 1 };          // Back Light
-  struct signal rs = { .ddr = &DDRB, .port = &PORTB, .pin = 0 };          // Reset
-  struct signal dc = { .ddr = &DDRD, .port = &PORTD, .pin = 7 };          // Data / Command 
+  struct signal dc = { .ddr = &DDRB, .port = &PORTB, .pin = 0 };          // Data / Command
+  struct signal rs = { .ddr = &DDRD, .port = &PORTD, .pin = 7 };          // Reset
 
   struct st7789 lcd = { .cs = &cs, .bl = &bl, .dc = &dc, .rs = &rs };     // LCD struct
 
   // LCD
   // ----------------------------------------------------------
-  ST7789_Init (&lcd);
-  ST7789_ClearScreen (&lcd, BLUE);
-  ST7789_FastLineHorizontal (&lcd, 10, 319, 15, RED);
-  ST7789_FastLineVertical (&lcd, 160, 0, 239, RED);
-  
-  _delay_ms (1000);
-  ST7735_InvertColorOn (&lcd);
-  
-  _delay_ms (1000);
-  ST7735_InvertColorOff (&lcd);
-  
+  ST7789_Init (&lcd, ST77XX_NORMAL | ST77XX_RGB);
+
   // EXIT
   // ----------------------------------------------------------
   return 0;
