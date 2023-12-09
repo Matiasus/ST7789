@@ -24,18 +24,22 @@
 const uint8_t INIT_ST7789[] PROGMEM = {
   // NUMBER OF COMMANDS
   // ---------------------------------------
-  5,                                                    // number of initializers
+  4,                                                    // number of initializers
   // COMMANDS WITH DELAY AND ARGUMENTS
   // ---------------------------------------
   ST77XX_SWRESET, 0, 150,                               // Software reset, no arguments, delay >120ms
   ST77XX_SLPOUT, 0, 150,                                // Out of sleep mode, no arguments, delay >120ms
   ST77XX_COLMOD, 1, 0x55, 10,                           // Set color mode, RGB565
-  ST77XX_MADCTL, 1, 0xA0, 0,
   ST77XX_DISPON, 0, 200                                 // Display turn on
 };
 
 uint16_t cacheIndexRow = 0;                             // @var array cache memory char index row
 uint16_t cacheIndexCol = 0;                             // @var array cache memory char index column
+
+struct S_SCREEN Screen = {
+  .x = MAX_X, 
+  .y = MAX_Y
+};
 
 /**
  * @desc    Clear screen
@@ -47,7 +51,7 @@ uint16_t cacheIndexCol = 0;                             // @var array cache memo
  */
 void ST7789_ClearScreen (struct st7789 * lcd, uint16_t color)
 {
-  ST7789_Set_Window (lcd, 0, SIZE_X, 0, SIZE_Y);        // set whole window 
+  ST7789_Set_Window (lcd, 0, Screen.x, 0, Screen.y);    // set whole window 
   ST7789_Send_Color_565 (lcd, color, 76800UL);          // draw individual pixels
 }
 
@@ -56,15 +60,15 @@ void ST7789_ClearScreen (struct st7789 * lcd, uint16_t color)
  * @surce   https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
  *
  * @param   struct st7789 *
- * @param   uint8_t x start position / 0 <= cols <= MAX_X-1
- * @param   uint8_t x end position   / 0 <= cols <= MAX_X-1
- * @param   uint8_t y start position / 0 <= rows <= MAX_Y-1
- * @param   uint8_t y end position   / 0 <= rows <= MAX_Y-1
+ * @param   uint16_t x start position / 0 <= cols <= MAX_X-1
+ * @param   uint16_t x end position   / 0 <= cols <= MAX_X-1
+ * @param   uint16_t y start position / 0 <= rows <= MAX_Y-1
+ * @param   uint16_t y end position   / 0 <= rows <= MAX_Y-1
  * @param   uint16_t color
  *
  * @return  void
  */
-char ST7789_DrawLine (struct st7789 * lcd, uint16_t x1, uint16_t x2, uint8_t y1, uint8_t y2, uint16_t color)
+char ST7789_DrawLine (struct st7789 * lcd, uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint16_t color)
 {
   int16_t D;                                            // determinant
   int16_t delta_x, delta_y;                             // deltas
@@ -122,12 +126,12 @@ char ST7789_DrawLine (struct st7789 * lcd, uint16_t x1, uint16_t x2, uint8_t y1,
  * @param   struct st7789 *
  * @param   uint16_t xs - start position
  * @param   uint16_t xe - end position
- * @param   uint8_t y - position
+ * @param   uint16_t y - position
  * @param   uint16_t color
  *
  * @return void
  */
-void ST7789_FastLineHorizontal (struct st7789 * lcd, uint16_t xs, uint16_t xe, uint8_t y, uint16_t color)
+void ST7789_FastLineHorizontal (struct st7789 * lcd, uint16_t xs, uint16_t xe, uint16_t y, uint16_t color)
 {
   if (xs > xe) {                                        // check if start is > as end
     uint8_t temp = xs;                                  // temporary safe
@@ -143,13 +147,13 @@ void ST7789_FastLineHorizontal (struct st7789 * lcd, uint16_t xs, uint16_t xe, u
  *
  * @param   struct st7789 *
  * @param   uint16_t x - position
- * @param   uint8_t ys - start position
- * @param   uint8_t ye - end position
+ * @param   uint16_t ys - start position
+ * @param   uint16_t ye - end position
  * @param   uint16_t color
  *
  * @return  void
  */
-void ST7789_FastLineVertical (struct st7789 * lcd, uint16_t x, uint8_t ys, uint8_t ye, uint16_t color)
+void ST7789_FastLineVertical (struct st7789 * lcd, uint16_t x, uint16_t ys, uint16_t ye, uint16_t color)
 {
   if (ys > ye) {                                        // check if start is > as end
     uint8_t temp = ys;                                  // temporary safe
@@ -235,7 +239,13 @@ void ST7735_InvertColorOff (struct st7789 * lcd)
 void ST7789_SetConfiguration (struct st7789 * lcd, uint8_t configuration)
 {
   ST7789_Send_Command (lcd, ST77XX_MADCTL);             // Memory Data Access Control
-  ST7789_Send_Data_Byte (lcd, configuration);           // set configuration like rotation, refresh,... 
+  ST7789_Send_Data_Byte (lcd, configuration);           // set configuration like rotation, refresh,...
+
+  if (((0xF0 & configuration) == ST77XX_ROTATE_90) ||
+      ((0xF0 & configuration) == ST77XX_ROTATE_270)) {
+    Screen.x = MAX_Y;
+    Screen.y = MAX_X;
+  }
 }
 
 /**
@@ -278,7 +288,7 @@ void ST7789_Init (struct st7789 * lcd, uint8_t configuration)
   
   // SET CONFIGURATION
   // --------------------------------------
-  //ST7789_SetConfiguration (lcd, configuration);
+  ST7789_SetConfiguration (lcd, configuration);
 }
 
 /**
@@ -293,15 +303,15 @@ void ST7789_Init (struct st7789 * lcd, uint8_t configuration)
  * @param   struct st7789 * lcd
  * @param   uint16_t xs - start position
  * @param   uint16_t xe - end position
- * @param   uint8_t ys - start position
- * @param   uint8_t ye - end position
+ * @param   uint16_t ys - start position
+ * @param   uint16_t ye - end position
  *
  * @return  uint8_t
  */
-uint8_t ST7789_Set_Window (struct st7789 * lcd, uint16_t xs, uint16_t xe, uint8_t ys, uint8_t ye)
+uint8_t ST7789_Set_Window (struct st7789 * lcd, uint16_t xs, uint16_t xe, uint16_t ys, uint16_t ye)
 {
-  if ((xs > xe) || (xe > SIZE_X) ||
-      (ys > ye) || (ys > SIZE_Y)) {
+  if ((xs > xe) || (xe > Screen.x) ||
+      (ys > ye) || (ys > Screen.y)) {
     return ST77XX_ERROR;                                // out of range
   }
 

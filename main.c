@@ -31,21 +31,21 @@ int main (void)
   // ----------------------------------------------------------
   struct signal cs = { .ddr = &DDRB, .port = &PORTB, .pin = 2 };          // Chip Select
   struct signal bl = { .ddr = &DDRB, .port = &PORTB, .pin = 1 };          // Back Light
-  struct signal dc = { .ddr = &DDRB, .port = &PORTB, .pin = 0 };          // Data / Command
-  struct signal rs = { .ddr = &DDRD, .port = &PORTD, .pin = 7 };          // Reset
+  struct signal rs = { .ddr = &DDRB, .port = &PORTB, .pin = 0 };          // Reset
+  struct signal dc = { .ddr = &DDRD, .port = &PORTD, .pin = 7 };          // Data / Command
 
   struct st7789 lcd = { .cs = &cs, .bl = &bl, .dc = &dc, .rs = &rs };     // LCD struct
 
   // LCD INIT
   // ----------------------------------------------------------
-  ST7789_Init (&lcd, 0xA0);
+  ST7789_Init (&lcd, ST77XX_ROTATE_270 | ST77XX_BGR);
 
   // DRAWING
-  ST7789_ClearScreen (&lcd, RED);
-  ST7789_DrawLine (&lcd, 10, 150, 10, 150, RED);
-
-  ST7789_RAM_ContentShow (&lcd);
-  ST7735_InvertColorOn (&lcd);
+  // ----------------------------------------------------------
+  ST7789_ClearScreen (&lcd, BLACK);
+  for (uint8_t i = 0; i<240; i++) {
+    ST7789_FastLineHorizontal (&lcd, 10, 320, i, BLUE);
+  }
 
   // EXIT
   // ----------------------------------------------------------
