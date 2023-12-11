@@ -42,6 +42,21 @@ struct S_SCREEN Screen = {
 };
 
 /**
+ * +------------------------------------------------------------------------------------+
+ * |== STATIC FUNCTIONS ================================================================|
+ * +------------------------------------------------------------------------------------+
+ */
+/* Chip Select Active */
+static inline void ST7789_CS_Active (struct st7789 * lcd) { CLR_BIT (*(lcd->cs->port), lcd->cs->pin); }
+/* Chip Select Idle */
+static inline void ST7789_CS_Idle (struct st7789 * lcd) { SET_BIT (*(lcd->cs->port), lcd->cs->pin); }
+
+/* Command Active */
+static inline void ST7789_DC_Command (struct st7789 * lcd) { CLR_BIT (*(lcd->dc->port), lcd->dc->pin); }
+/* Data Active */
+static inline void ST7789_DC_Data (struct st7789 * lcd) { SET_BIT (*(lcd->dc->port), lcd->dc->pin) }
+
+/**
  * @desc    Clear screen
  *
  * @param   struct st7789 *
@@ -49,10 +64,12 @@ struct S_SCREEN Screen = {
  *
  * @return  void
  */
-void ST7789_ClearScreen (struct st7789 * lcd, uint16_t color)
+void ST7789_ClearScreen (struct st7789 * lcd, uint16_t color) 
 {
-  ST7789_Set_Window (lcd, 0, Screen.x, 0, Screen.y);    // set whole window 
-  ST7789_Send_Color_565 (lcd, color, 76800UL);          // draw individual pixels
+  ST7789_CS_Active (lcd);                               // chip enable - active low
+  ST7789_Set_Window (lcd, 0, Screen.x, 0, Screen.y);    // set window
+  ST7789_Send_Color_565 (lcd, color, 1);                // draw pixel by 565 mode
+  ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 }
 
 /**
@@ -138,8 +155,10 @@ void ST7789_FastLineHorizontal (struct st7789 * lcd, uint16_t xs, uint16_t xe, u
     xe = xs;                                            // start change for end
     xs = temp;                                          // end change for start
   }
+  ST7789_CS_Active (lcd);                               // chip enable - active low
   ST7789_Set_Window (lcd, xs, xe, y, y);                // set window
   ST7789_Send_Color_565 (lcd, color, xe - xs);          // draw pixel by 565 mode
+  ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 }
 
 /**
@@ -160,8 +179,10 @@ void ST7789_FastLineVertical (struct st7789 * lcd, uint16_t x, uint16_t ys, uint
     ye = ys;                                            // start change for end
     ys = temp;                                          // end change for start
   }
+  ST7789_CS_Active (lcd);                               // chip enable - active low
   ST7789_Set_Window (lcd, x, x, ys, ye);                // set window
   ST7789_Send_Color_565 (lcd, color, ye - ys);          // draw pixel by 565 mode
+  ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 }
 
 /**
@@ -176,8 +197,10 @@ void ST7789_FastLineVertical (struct st7789 * lcd, uint16_t x, uint16_t ys, uint
  */
 void ST7789_DrawPixel (struct st7789 * lcd, uint16_t x, uint8_t y, uint16_t color)
 {
+  ST7789_CS_Active (lcd);                               // chip enable - active low
   ST7789_Set_Window (lcd, x, x, y, y);                  // set window
   ST7789_Send_Color_565 (lcd, color, 1);                // draw pixel by 565 mode
+  ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 }
 
 /**
@@ -311,17 +334,31 @@ void ST7789_Init (struct st7789 * lcd, uint8_t configuration)
 uint8_t ST7789_Set_Window (struct st7789 * lcd, uint16_t xs, uint16_t xe, uint16_t ys, uint16_t ye)
 {
   if ((xs > xe) || (xe > Screen.x) ||
-      (ys > ye) || (ys > Screen.y)) {
+      (ys > ye) || (ye > Screen.y)) {
     return ST77XX_ERROR;                                // out of range
   }
 
-  ST7789_Send_Command (lcd, ST77XX_CASET);              // column address set
-  ST7789_Send_Data_Word (lcd, 0x0000 | xs);             // send start x position
-  ST7789_Send_Data_Word (lcd, 0x0000 | xe);             // send end x position
-
-  ST7789_Send_Command (lcd, ST77XX_RASET);              // row address set
-  ST7789_Send_Data_Word (lcd, 0x0000 | ys);             // send start y position
-  ST7789_Send_Data_Word (lcd, 0x0000 | ye);             // send end y position
+  // CASET
+  // --------------------------------------
+  ST7789_DC_Command (lcd);                              // command (active low)
+  SPI_Transfer (ST77XX_CASET);                          // command
+  
+  ST7789_DC_Data (lcd);                                 // data (active high)
+  SPI_Transfer ((uint8_t) (xs >> 8));                   // transfer High Byte
+  SPI_Transfer ((uint8_t) xs);                          // transfer low Byte
+  SPI_Transfer ((uint8_t) (xe >> 8));                   // transfer High Byte
+  SPI_Transfer ((uint8_t) xe);                          // transfer low Byte
+  
+  // RASET
+  // --------------------------------------
+  ST7789_DC_Command (lcd);                              // command (active low)
+  SPI_Transfer (ST77XX_RASET);                          // command
+  
+  ST7789_DC_Data (lcd);                                 // data (active high)
+  SPI_Transfer ((uint8_t) (ys >> 8));                   // transfer High Byte
+  SPI_Transfer ((uint8_t) ys);                          // transfer low Byte
+  SPI_Transfer ((uint8_t) (ye >> 8));                   // transfer High Byte
+  SPI_Transfer ((uint8_t) ye);                          // transfer low Byte
 
   return ST77XX_SUCCESS;                                // success
 }
@@ -337,9 +374,15 @@ uint8_t ST7789_Set_Window (struct st7789 * lcd, uint16_t xs, uint16_t xe, uint16
  */
 void ST7789_Send_Color_565 (struct st7789 * lcd, uint16_t color, uint32_t count)
 {
-  ST7789_Send_Command (lcd, ST77XX_RAMWR);              // access to RAM
+  // RAMWR
+  // --------------------------------------
+  ST7789_DC_Command (lcd);                              // command (active low)
+  SPI_Transfer (ST77XX_RAMWR);                          // command
+  
+  ST7789_DC_Data (lcd);                                 // data (active high)
   while (count--) {
-    ST7789_Send_Data_Word (lcd, color);                 // write color
+    SPI_Transfer ((uint8_t) (color >> 8));              // transfer High Byte
+    SPI_Transfer ((uint8_t) color);                     // transfer low Byte
   }
 }
 
@@ -407,10 +450,10 @@ void ST7789_Init_Sequence (struct st7789 * lcd, const uint8_t * list)
  */
 void ST7789_Send_Command (struct st7789 * lcd, uint8_t data)
 {
-  CLR_BIT (*(lcd->cs->port), lcd->cs->pin);             // chip enable - active low
-  CLR_BIT (*(lcd->dc->port), lcd->dc->pin);             // command (active low)
+  ST7789_CS_Active (lcd);                               // chip enable - active low
+  ST7789_DC_Command (lcd);                              // command (active low)
   SPI_Transfer (data);                                  // transfer
-  SET_BIT (*(lcd->cs->port), lcd->cs->pin);             // chip disable - idle high
+  ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 }
 
 /**
@@ -423,10 +466,10 @@ void ST7789_Send_Command (struct st7789 * lcd, uint8_t data)
  */
 void ST7789_Send_Data_Byte (struct st7789 * lcd, uint8_t data)
 {
-  CLR_BIT (*(lcd->cs->port), lcd->cs->pin);             // chip enable - active low
-  SET_BIT (*(lcd->dc->port), lcd->dc->pin);             // data (active high)
+  ST7789_CS_Active (lcd);                               // chip enable - active low
+  ST7789_DC_Data (lcd);                                 // data (active high)
   SPI_Transfer (data);                                  // transfer
-  SET_BIT (*(lcd->cs->port), lcd->cs->pin);             // chip disable - idle high
+  ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 }
 
 /**
@@ -439,11 +482,11 @@ void ST7789_Send_Data_Byte (struct st7789 * lcd, uint8_t data)
  */
 void ST7789_Send_Data_Word (struct st7789 * lcd, uint16_t data)
 {
-  CLR_BIT (*(lcd->cs->port), lcd->cs->pin);             // chip enable - active low
-  SET_BIT (*(lcd->dc->port), lcd->dc->pin);             // data (active high)
+  ST7789_CS_Active (lcd);                               // chip enable - active low
+  ST7789_DC_Data (lcd);                                 // data (active high)
   SPI_Transfer ((uint8_t) (data >> 8));                 // transfer High Byte
   SPI_Transfer ((uint8_t) data);                        // transfer low Byte
-  SET_BIT (*(lcd->cs->port), lcd->cs->pin);             // chip disable - idle high
+  ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 }
 
 /**
