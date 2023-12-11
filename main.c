@@ -38,13 +38,24 @@ int main (void)
 
   // LCD INIT
   // ----------------------------------------------------------
-  ST7789_Init (&lcd, ST77XX_ROTATE_270 | ST77XX_BGR);
+  ST7789_Init (&lcd, ST77XX_ROTATE_270 | ST77XX_RGB);
 
   // DRAWING
   // ----------------------------------------------------------
-  ST7789_ClearScreen (&lcd, BLACK);
-  for (uint8_t i = 0; i<240; i++) {
-    ST7789_FastLineHorizontal (&lcd, 10, 320, i, BLUE);
+  ST7789_ClearScreen (&lcd, WHITE);
+
+  _delay_ms (1000);
+  for (uint8_t i = 0; i<240; i=i+5) {
+    ST7789_DrawLine (&lcd, 0, 320, 0, i, RED);
+  }
+  _delay_ms (1000);
+  for (uint8_t i = 0; i<240; i=i+5) {
+    ST7789_DrawLine (&lcd, 0, 320, i, 0, BLUE);
+  }
+
+  ST7789_SetPosition (32, 210);
+  for (uint8_t i = 0x30; i<0x5b; i++) {
+    ST7789_DrawChar (&lcd, i, BLACK);
   }
 
   // EXIT

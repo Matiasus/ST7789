@@ -24,12 +24,13 @@
 const uint8_t INIT_ST7789[] PROGMEM = {
   // NUMBER OF COMMANDS
   // ---------------------------------------
-  4,                                                    // number of initializers
+  5,                                                    // number of initializers
   // COMMANDS WITH DELAY AND ARGUMENTS
   // ---------------------------------------
   ST77XX_SWRESET, 0, 150,                               // Software reset, no arguments, delay >120ms
   ST77XX_SLPOUT, 0, 150,                                // Out of sleep mode, no arguments, delay >120ms
   ST77XX_COLMOD, 1, 0x55, 10,                           // Set color mode, RGB565
+  ST77XX_INVON, 0, 150,                                 // Set invert color mode
   ST77XX_DISPON, 0, 200                                 // Display turn on
 };
 
@@ -54,7 +55,75 @@ static inline void ST7789_CS_Idle (struct st7789 * lcd) { SET_BIT (*(lcd->cs->po
 /* Command Active */
 static inline void ST7789_DC_Command (struct st7789 * lcd) { CLR_BIT (*(lcd->dc->port), lcd->dc->pin); }
 /* Data Active */
-static inline void ST7789_DC_Data (struct st7789 * lcd) { SET_BIT (*(lcd->dc->port), lcd->dc->pin) }
+static inline void ST7789_DC_Data (struct st7789 * lcd) { SET_BIT (*(lcd->dc->port), lcd->dc->pin); }
+
+/**
+ * +------------------------------------------------------------------------------------+
+ * |== PUBLIC FUNCTIONS ================================================================|
+ * +------------------------------------------------------------------------------------+
+ */
+
+/**
+ * @desc    Set text position x, y
+ *
+ * @param   uint8_t x - position
+ * @param   uint8_t y - position
+ *
+ * @return  char
+ */
+char ST7789_SetPosition (uint8_t x, uint8_t y)
+{
+  if ((x > MAX_X) && (y > MAX_Y)) {
+    return ST77XX_ERROR;                                // check if coordinates is out of range
+  } 
+  else if ((x > MAX_X) && (y <= MAX_Y)) {
+    cacheIndexRow = y;                                  // set position y
+    cacheIndexCol = 2;                                  // set position x
+  } else {
+    cacheIndexRow = y;                                  // set position y 
+    cacheIndexCol = x;                                  // set position x
+  }
+
+  return ST77XX_SUCCESS;
+}
+
+/**
+ * @desc    Draw character
+ *
+ * @param   struct st7789 *
+ * @param   char character
+ * @param   uint16_t color
+ *
+ * @return  void
+ */
+char ST7789_DrawChar (struct st7789 * lcd, char character, uint16_t color)
+{
+  uint8_t letter, idxCol, idxRow;                       // variables
+  
+  if ((character < 0x20) &&
+      (character > 0x7f)) { 
+    return ST77XX_ERROR;                                // out of range
+  }
+  
+  idxCol = CHARS_COLS_LEN;                              // last column of character array - 5 columns 
+  idxRow = CHARS_ROWS_LEN;                              // last row of character array - 8 rows / bits
+
+  // --------------------------------------
+  // SIZE X1 - normal font 1x high, 1x wide
+  // --------------------------------------
+  while (idxCol--) {
+    letter = pgm_read_byte (&FONTS[character - 32][idxCol]);
+    while (idxRow--) {
+      if (letter & (1 << idxRow)) {
+        ST7789_DrawPixel (lcd, cacheIndexCol + idxCol, cacheIndexRow + idxRow, color);
+      }
+    }
+    idxRow = CHARS_ROWS_LEN;
+  }
+  cacheIndexCol = cacheIndexCol + CHARS_COLS_LEN + 1;
+  
+  return ST77XX_SUCCESS;
+}
 
 /**
  * @desc    Clear screen
@@ -68,7 +137,7 @@ void ST7789_ClearScreen (struct st7789 * lcd, uint16_t color)
 {
   ST7789_CS_Active (lcd);                               // chip enable - active low
   ST7789_Set_Window (lcd, 0, Screen.x, 0, Screen.y);    // set window
-  ST7789_Send_Color_565 (lcd, color, 1);                // draw pixel by 565 mode
+  ST7789_Send_Color_565 (lcd, color, WINDOW_PIXELS);    // draw pixel by 565 mode
   ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 }
 
@@ -106,9 +175,11 @@ char ST7789_DrawLine (struct st7789 * lcd, uint16_t x1, uint16_t x2, uint16_t y1
 
   // Bresenham condition for m < 1 (dy < dx)
   // ---------------------------------------
+  ST7789_CS_Active (lcd);                               // chip enable - active low
   if (delta_y < delta_x) {
     D = (delta_y << 1) - delta_x;                       // calculate determinant
-    ST7789_DrawPixel (lcd, x1, y1, color);              // draw first pixel
+    ST7789_Set_Window (lcd, x1, x1, y1, y1);            // set window
+    ST7789_Send_Color_565 (lcd, color, 1);              // draw pixel by 565 mode
     while (x1 != x2) {                                  // check if x1 equal x2
       x1 += trace_x;                                    // update x1
       if (D >= 0) {                                     // check if determinant is positive
@@ -116,13 +187,15 @@ char ST7789_DrawLine (struct st7789 * lcd, uint16_t x1, uint16_t x2, uint16_t y1
         D -= 2*delta_x;                                 // update determinant
       }
       D += 2*delta_y;                                   // update deteminant
-      ST7789_DrawPixel (lcd, x1, y1, color);            // draw next pixel
+      ST7789_Set_Window (lcd, x1, x1, y1, y1);          // set window
+      ST7789_Send_Color_565 (lcd, color, 1);            // draw pixel by 565 mode
     }
   // Bresenham condition for m > 1 (dy > dx)
   // ---------------------------------------
   } else {
     D = delta_y - (delta_x << 1);                       // calculate determinant
-    ST7789_DrawPixel (lcd, x1, y1, color);              // draw first pixel
+    ST7789_Set_Window (lcd, x1, x1, y1, y1);            // set window
+    ST7789_Send_Color_565 (lcd, color, 1);              // draw pixel by 565 mode
     while (y1 != y2) {                                  // check if y2 equal y1
       y1 += trace_y;                                    // update y1
       if (D <= 0) {                                     // check if determinant is positive
@@ -130,11 +203,13 @@ char ST7789_DrawLine (struct st7789 * lcd, uint16_t x1, uint16_t x2, uint16_t y1
         D += 2*delta_y;                                 // update determinant
       }
       D -= 2*delta_x;                                   // update deteminant
-      ST7789_DrawPixel (lcd, x1, y1, color);            // draw next pixel
+      ST7789_Set_Window (lcd, x1, x1, y1, y1);          // set window
+      ST7789_Send_Color_565 (lcd, color, 1);            // draw pixel by 565 mode
     }
   }
+  ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 
-  return ST77XX_SUCCESS;                                 // success return
+  return ST77XX_SUCCESS;                                // success return
 }
 
 /**
@@ -222,7 +297,7 @@ void ST7789_RAM_ContentShow (struct st7789 * lcd)
  *
  * @return  void
  */
-void ST7735_RAM_ContentHide (struct st7789 * lcd)
+void ST7789_RAM_ContentHide (struct st7789 * lcd)
 {
   ST7789_Send_Command (lcd, ST77XX_DISPOFF);            // display content off
 }
@@ -234,7 +309,7 @@ void ST7735_RAM_ContentHide (struct st7789 * lcd)
  *
  * @return  void
  */
-void ST7735_InvertColorOn (struct st7789 * lcd)
+void ST7789_InvertColorOn (struct st7789 * lcd)
 {
   ST7789_Send_Command (lcd, ST77XX_INVON);              // inversion on
 }
@@ -246,29 +321,9 @@ void ST7735_InvertColorOn (struct st7789 * lcd)
  *
  * @return  void
  */
-void ST7735_InvertColorOff (struct st7789 * lcd)
+void ST7789_InvertColorOff (struct st7789 * lcd)
 {
   ST7789_Send_Command (lcd, ST77XX_INVOFF);             // inversion off
-}
-
-/**
- * @desc    Set Configuration LCD
- *
- * @param   struct st7789 * lcd
- * @param   uint8_t
- *
- * @return  void
- */
-void ST7789_SetConfiguration (struct st7789 * lcd, uint8_t configuration)
-{
-  ST7789_Send_Command (lcd, ST77XX_MADCTL);             // Memory Data Access Control
-  ST7789_Send_Data_Byte (lcd, configuration);           // set configuration like rotation, refresh,...
-
-  if (((0xF0 & configuration) == ST77XX_ROTATE_90) ||
-      ((0xF0 & configuration) == ST77XX_ROTATE_270)) {
-    Screen.x = MAX_Y;
-    Screen.y = MAX_X;
-  }
 }
 
 /**
@@ -319,6 +374,30 @@ void ST7789_Init (struct st7789 * lcd, uint8_t configuration)
  * PRIVATE FUNCTIONS
  * --------------------------------------------------------------------------------------------+
  */
+
+/**
+ * @desc    Set Configuration LCD
+ *
+ * @param   struct st7789 * lcd
+ * @param   uint8_t
+ *
+ * @return  void
+ */
+void ST7789_SetConfiguration (struct st7789 * lcd, uint8_t configuration)
+{
+  ST7789_CS_Active (lcd);                               // chip enable - active low
+  ST7789_DC_Command (lcd);                              // command (active low)
+  SPI_Transfer (ST77XX_MADCTL);                         // command
+  ST7789_DC_Data (lcd);                                 // data (active high)
+  SPI_Transfer (configuration);                         // set configuration like rotation, refresh,...
+  ST7789_CS_Idle (lcd);                                 // chip disable - idle high
+
+  if (((0xF0 & configuration) == ST77XX_ROTATE_90) ||
+      ((0xF0 & configuration) == ST77XX_ROTATE_270)) {
+    Screen.x = MAX_Y;
+    Screen.y = MAX_X;
+  }
+}
 
 /**
  * @desc    Set window

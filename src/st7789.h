@@ -43,7 +43,7 @@
   #define ST77XX_NORON          0x13  // This command turns the display to normal mode, Normal display mode on means partial mode off
 
   #define ST77XX_INVOFF         0x20  // This command is used to recover from display inversion mode
-  #define ST77XX_INVON          0x21  // This command is used to recover from display inversion mode.
+  #define ST77XX_INVON          0x21  // 
   #define ST77XX_DISPOFF        0x28  // In this mode, the output from Frame Memory is disabled and blank page inserted
   #define ST77XX_DISPON         0x29  // This command is used to recover from DISPLAY OFF mode.
   #define ST77XX_CASET          0x2A  // Column Address Set, XS, XE [15:0] < 239 (00Efh)): MV=”0”, XS, XE [15:0] < 319 (013Fh)): MV=”1”
@@ -63,15 +63,15 @@
 
   // Colors
   // -----------------------------------
-  #define BLACK                 0xFFFF
-  #define WHITE                 0x0000
-  #define RED                   0xFC00
-  #define BLUE                  0x00CF
+  #define BLACK                 0x0000
+  #define WHITE                 0xFFFF
+  #define RED                   0xF000
+  #define BLUE                  0x000F
 
   // AREA definition
   // -----------------------------------
   #define MAX_X                 240                     // max columns / MV = 0 in MADCTL
-  #define MAX_Y                 320                     // max rows / MV = 0 in MADCTL
+  #define MAX_Y                 320UL                     // max rows / MV = 0 in MADCTL
   #define WINDOW_PIXELS         MAX_X * MAX_Y
   #define SIZE_X                MAX_X - 1               // columns max counter
   #define SIZE_Y                MAX_Y - 1               // rows max counter
@@ -158,6 +158,27 @@
 
   /** @const Command List */
   extern const uint8_t INIT_ST7789[];                   // @const Command List ST7789V2
+
+  /**
+   * @desc    Set text position x, y
+   *
+   * @param   uint8_t x - position
+   * @param   uint8_t y - position
+   *
+   * @return  char
+   */
+  char ST7789_SetPosition (uint8_t, uint8_t);
+
+  /**
+   * @desc    Draw character
+   *
+   * @param   struct st7789 *
+   * @param   char character
+   * @param   uint16_t color
+   *
+   * @return  void
+   */
+  char ST7789_DrawChar (struct st7789 *, char, uint16_t);
 
   /**
    * @desc    Clear screen
@@ -248,7 +269,7 @@
    *
    * @return  void
    */
-  void ST7735_RAM_ContentHide (struct st7789 *);
+  void ST7789_RAM_ContentHide (struct st7789 *);
 
   /**
    * @desc    Inversion On
@@ -257,7 +278,7 @@
    *
    * @return  void
    */
-  void ST7735_InvertColorOn (struct st7789 *);
+  void ST7789_InvertColorOn (struct st7789 *);
 
   /**
    * @desc    Inversion Off
@@ -266,7 +287,7 @@
    *
    * @return  void
    */
-  void ST7735_InvertColorOff (struct st7789 *);
+  void ST7789_InvertColorOff (struct st7789 *);
 
   /**
    * @desc    Set Configuration LCD
