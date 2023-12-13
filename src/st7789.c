@@ -88,6 +88,38 @@ char ST7789_SetPosition (uint8_t x, uint8_t y)
 }
 
 /**
+ * @desc    Draw String
+ *
+ * @param   struct st7789 *
+ * @param   char * string 
+ * @param   uint16_t color
+ * @param   enum S_SIZE (X1, X2, X3)
+ *
+ * @return  uint8_t
+ */
+uint8_t ST7789_DrawString (struct st7789 * lcd, char * str, uint16_t color, enum S_SIZE size)
+{
+  uint8_t i = 0;
+  //uint8_t delta_y = CHARS_ROWS_LEN + (size >> 4);
+
+  while (str[i] != '\0') {
+/*
+    if (((cacheIndexCol + CHARS_COLS_LEN + (size & 0x0F)) > MAX_X)) {
+      if ((cacheIndexRow + delta_y) > (MAX_Y - delta_y)) {
+        return ST77XX_ERROR;
+      } else {
+        cacheIndexRow += delta_y;
+        cacheIndexCol = 2;
+      } 
+    }
+    */
+    ST7789_DrawChar (lcd, str[i++], color, size);
+  }
+
+  return ST77XX_SUCCESS;
+}
+
+/**
  * @desc    Draw character
  *
  * @param   struct st7789 *
@@ -96,7 +128,7 @@ char ST7789_SetPosition (uint8_t x, uint8_t y)
  *
  * @return  void
  */
-char ST7789_DrawChar (struct st7789 * lcd, char character, uint16_t color)
+char ST7789_DrawChar (struct st7789 * lcd, char character, uint16_t color, enum S_SIZE size)
 {
   uint8_t letter, idxCol, idxRow;                       // variables
   
@@ -108,20 +140,58 @@ char ST7789_DrawChar (struct st7789 * lcd, char character, uint16_t color)
   idxCol = CHARS_COLS_LEN;                              // last column of character array - 5 columns 
   idxRow = CHARS_ROWS_LEN;                              // last row of character array - 8 rows / bits
 
+  ST7789_CS_Active (lcd);                               // chip enable - active low
+
   // --------------------------------------
   // SIZE X1 - normal font 1x high, 1x wide
   // --------------------------------------
-  while (idxCol--) {
-    letter = pgm_read_byte (&FONTS[character - 32][idxCol]);
-    while (idxRow--) {
-      if (letter & (1 << idxRow)) {
-        ST7789_DrawPixel (lcd, cacheIndexCol + idxCol, cacheIndexRow + idxRow, color);
+  if (size == X1) { 
+    while (idxCol--) {
+      letter = pgm_read_byte (&FONTS[character - 32][idxCol]);
+      while (idxRow--) {
+        if (letter & (1 << idxRow)) {
+          ST7789_Set_Window (lcd, cacheIndexCol+idxCol, cacheIndexCol+idxCol, cacheIndexRow+idxRow, cacheIndexRow+idxRow);
+          ST7789_Send_Color_565 (lcd, color, 1);
+        }
       }
+      idxRow = CHARS_ROWS_LEN;
     }
-    idxRow = CHARS_ROWS_LEN;
+    cacheIndexCol += CHARS_COLS_LEN + 1;
+  // --------------------------------------
+  // SIZE X2 - font 2x higher, normal wide
+  // --------------------------------------
+  } else if (size == X2) {
+    while (idxCol--) {
+      letter = pgm_read_byte (&FONTS[character - 32][idxCol]);
+      while (idxRow--) {
+        if (letter & (1 << idxRow)) {
+          ST7789_Set_Window (lcd, cacheIndexCol+idxCol, cacheIndexCol+idxCol, cacheIndexRow+(idxRow<<1), cacheIndexRow+(idxRow<<1)+1);
+          ST7789_Send_Color_565 (lcd, color, 2);
+        }
+      }
+      idxRow = CHARS_ROWS_LEN;
+    }
+    cacheIndexCol += CHARS_COLS_LEN + 1;
+
+  // --------------------------------------
+  // SIZE X3 - font 2x higher, 2x wider
+  // --------------------------------------
+  } else if (size == X3) {
+    while (idxCol--) {
+      letter = pgm_read_byte (&FONTS[character - 32][idxCol]);
+      while (idxRow--) {
+        if (letter & (1 << idxRow)) {
+          ST7789_Set_Window (lcd, cacheIndexCol+(idxCol<<1), cacheIndexCol+(idxCol<<1)+1, cacheIndexRow+(idxRow<<1), cacheIndexRow+(idxRow<<1)+1);
+          ST7789_Send_Color_565 (lcd, color, 4);
+        }
+      }
+      idxRow = CHARS_ROWS_LEN;
+    }
+    cacheIndexCol += CHARS_COLS_LEN + CHARS_COLS_LEN + 1;
   }
-  cacheIndexCol = cacheIndexCol + CHARS_COLS_LEN + 1;
-  
+
+  ST7789_CS_Idle (lcd);                                 // chip disable - idle high
+
   return ST77XX_SUCCESS;
 }
 

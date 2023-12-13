@@ -128,13 +128,6 @@
   #define ST77XX_XY_CHANGE      0x20                    // X-Y Exchange
   #define ST77XX_XY_CHANGE_XY   0xD0                    // X-Y Exchange X-Mirror Y-Mirror
 
-  /** @enum Font sizes */
-  enum Size {
-    X1 = 0x00,                                          // 1x high & 1x wide size
-    X2 = 0x80,                                          // 2x high & 1x wide size
-    X3 = 0x81                                           // 2x high & 2x wider size
-  };
-
   /** @struct Signal */
   struct signal {
     volatile uint8_t * ddr;                             // ddr
@@ -156,8 +149,27 @@
     uint16_t y;                                         // y dimension
   };
 
+  /** @enum Font sizes */
+  enum S_SIZE {
+    X1 = 0x00,                                          // 1x high & 1x wide size
+    X2 = 0x80,                                          // 2x high & 1x wide size
+    X3 = 0x81                                           // 2x high & 2x wider size
+  };
+
   /** @const Command List */
   extern const uint8_t INIT_ST7789[];                   // @const Command List ST7789V2
+
+  /**
+   * @desc    Draw String
+   *
+   * @param   struct st7789 *
+   * @param   char * string 
+   * @param   uint16_t color
+   * @param   enum S_SIZE (X1, X2, X3)
+   *
+   * @return  uint8_t
+   */
+  uint8_t ST7789_DrawString (struct st7789 *, char *, uint16_t, enum S_SIZE);
 
   /**
    * @desc    Set text position x, y
@@ -178,7 +190,7 @@
    *
    * @return  void
    */
-  char ST7789_DrawChar (struct st7789 *, char, uint16_t);
+  char ST7789_DrawChar (struct st7789 *, char, uint16_t, enum S_SIZE);
 
   /**
    * @desc    Clear screen

@@ -44,19 +44,18 @@ int main (void)
   // ----------------------------------------------------------
   ST7789_ClearScreen (&lcd, WHITE);
 
-  _delay_ms (1000);
   for (uint8_t i = 0; i<240; i=i+5) {
     ST7789_DrawLine (&lcd, 0, 320, 0, i, RED);
   }
-  _delay_ms (1000);
   for (uint8_t i = 0; i<240; i=i+5) {
     ST7789_DrawLine (&lcd, 0, 320, i, 0, BLUE);
   }
-
-  ST7789_SetPosition (32, 210);
-  for (uint8_t i = 0x30; i<0x5b; i++) {
-    ST7789_DrawChar (&lcd, i, BLACK);
+  for (uint8_t i = 0; i<30; i++) {
+    ST7789_FastLineHorizontal (&lcd, 0, 320, i, BLACK);
   }
+
+  ST7789_SetPosition (90, 5);
+  ST7789_DrawString (&lcd, "ST7789 DRIVER", WHITE, X3);
 
   // EXIT
   // ----------------------------------------------------------
