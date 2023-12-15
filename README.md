@@ -43,6 +43,20 @@ C library is aimed for driving 1.69 TFT LCD display 320x240 with ST7789 driver t
 // +---------------------------+
 //              |
 // +---------------------------+
+// |   ST77XX_COLMOD / 0x3A    |
+// +---------------------------+
+// |           0x55            |
+// |      delay >  10ms        |
+// +---------------------------+
+//              |
+// +---------------------------+
+// |    Invert Color / 0x21    |
+// +---------------------------+
+// |       no argument         |
+// |      delay >  10ms        |
+// +---------------------------+
+//              |
+// +---------------------------+
 // |    Display On / 0x29      |
 // +---------------------------+
 // |       no argument         |
@@ -71,6 +85,7 @@ Communication was done through SPI port interface of Arduino UNO R3. This hardwa
 Library was tested and verified with **_ST7789 1.69″ TFT Display_** and **_Atmega328P_**. It can be used for MCU Atmega8 too because of the similarity with Atmega328P.
 
 ## Demonstration
+<img src="img/st7789v2.png" alt="Demonstration" width="600">
 
 ## Links
 - [Datasheet ST7789](https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/docs/datasheet/unit/lcd/ST7789V2_SPEC_V1.0.pdf)
