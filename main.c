@@ -18,6 +18,8 @@
  */
 #include "src/st7789.h"
 
+extern struct S_SCREEN Screen;
+
 /**
  * @desc    Main function
  *
@@ -27,6 +29,8 @@
  */
 int main (void)
 {
+  int16_t i;
+
   // LCD - init struct
   // ----------------------------------------------------------
   struct signal cs = { .ddr = &DDRB, .port = &PORTB, .pin = 2 };          // Chip Select
@@ -43,19 +47,16 @@ int main (void)
   // DRAWING
   // ----------------------------------------------------------
   ST7789_ClearScreen (&lcd, WHITE);
-
-  for (uint8_t i = 0; i<240; i=i+5) {
-    ST7789_DrawLine (&lcd, 0, 320, 0, i, RED);
+/*
+  for (i = 0; i<Screen.y; i=i+5) {
+    ST7789_DrawLine (&lcd, 0, Screen.x, 0, i, RED);
   }
-  for (uint8_t i = 0; i<240; i=i+5) {
-    ST7789_DrawLine (&lcd, 0, 320, i, 0, BLUE);
+  for (i = 0; i<Screen.y; i=i+5) {
+    ST7789_DrawLine (&lcd, 0, Screen.x, i, 0, BLUE);
   }
-  for (uint8_t i = 0; i<30; i++) {
-    ST7789_FastLineHorizontal (&lcd, 0, 320, i, BLACK);
-  }
-
-  ST7789_SetPosition (90, 5);
-  ST7789_DrawString (&lcd, "ST7789 DRIVER", WHITE, X3);
+*/
+  ST7789_SetPosition (20, 30);
+  ST7789_DrawString (&lcd, "STM32 is a family of 32-bit microcontroller integrated circuits by STMicroelectronics. The STM32 chips are grouped into related series that are based around the same 32-bit ARM processor core: Cortex-M0, Cortex-M0+, Cortex-M3, Cortex-M4, Cortex-M7, Cortex-M33. Internally, each microcontroller consists of ARM each microcontroller consists of ARM", BLUE, X3);
 
   // EXIT
   // ----------------------------------------------------------

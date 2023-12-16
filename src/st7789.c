@@ -39,7 +39,9 @@ uint16_t cacheIndexCol = 0;                             // @var array cache memo
 
 struct S_SCREEN Screen = {
   .x = MAX_X, 
-  .y = MAX_Y
+  .y = MAX_Y,
+  .marginX = 10,
+  .marginY = 10
 };
 
 /**
@@ -99,20 +101,25 @@ char ST7789_SetPosition (uint8_t x, uint8_t y)
  */
 uint8_t ST7789_DrawString (struct st7789 * lcd, char * str, uint16_t color, enum S_SIZE size)
 {
-  uint8_t i = 0;
-  //uint8_t delta_y = CHARS_ROWS_LEN + (size >> 4);
+  uint8_t delta_y = CHARS_ROWS_LEN + (size >> 4);
+  uint16_t i = 0;
+  uint16_t x;
+  uint16_t y;
 
   while (str[i] != '\0') {
-/*
-    if (((cacheIndexCol + CHARS_COLS_LEN + (size & 0x0F)) > MAX_X)) {
-      if ((cacheIndexRow + delta_y) > (MAX_Y - delta_y)) {
+
+    x = cacheIndexCol + (CHARS_COLS_LEN << (size & 0x0F)) + Screen.marginX;
+    y = cacheIndexRow + delta_y + Screen.marginY;
+
+    if (x > Screen.x) {
+      if (y > Screen.y) {
         return ST77XX_ERROR;
       } else {
         cacheIndexRow += delta_y;
-        cacheIndexCol = 2;
+        cacheIndexCol = Screen.marginX;
       } 
     }
-    */
+    
     ST7789_DrawChar (lcd, str[i++], color, size);
   }
 
@@ -466,6 +473,7 @@ void ST7789_SetConfiguration (struct st7789 * lcd, uint8_t configuration)
       ((0xF0 & configuration) == ST77XX_ROTATE_270)) {
     Screen.x = MAX_Y;
     Screen.y = MAX_X;
+    Screen.marginX = 25;
   }
 }
 

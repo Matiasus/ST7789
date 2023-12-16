@@ -71,7 +71,7 @@
   // AREA definition
   // -----------------------------------
   #define MAX_X                 240                     // max columns / MV = 0 in MADCTL
-  #define MAX_Y                 320UL                     // max rows / MV = 0 in MADCTL
+  #define MAX_Y                 320UL                   // max rows / MV = 0 in MADCTL
   #define WINDOW_PIXELS         MAX_X * MAX_Y
   #define SIZE_X                MAX_X - 1               // columns max counter
   #define SIZE_Y                MAX_Y - 1               // rows max counter
@@ -119,7 +119,7 @@
   //      1 -> refresh right to left
   #define ST77XX_RGB            0x00                    // RGB Mode
   #define ST77XX_BGR            0x08                    // BGR Mode 
-  #define ST77XX_NORMAL         0x00                    // Normal    = left to right, refresh top-bottom  
+  #define ST77XX_ROTATE_0       0x00                    // Normal    = left to right, refresh top-bottom  
   #define ST77XX_ROTATE_90      0x60                    // X-Y Exchange X-Mirror = rotation 90 degrees
   #define ST77XX_ROTATE_180     0xC0                    // XY-Mirror = right to left, refresh bottom-top = rotation 180 degrees
   #define ST77XX_ROTATE_270     0xA0                    // X-Y Exchange Y-Mirror
@@ -147,6 +147,8 @@
   struct S_SCREEN {
     uint16_t x;                                         // x dimension
     uint16_t y;                                         // y dimension
+    uint16_t marginX;
+    uint16_t marginY;
   };
 
   /** @enum Font sizes */

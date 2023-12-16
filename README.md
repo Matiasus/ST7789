@@ -19,8 +19,8 @@ C library is aimed for driving 1.69 TFT LCD display 320x240 with ST7789 driver t
 // +---------------------------+
 //              |
 // +---------------------------+
-// |       Hardware Reset      |
-// |          IMPULSE          |
+// |      Hardware Reset       |
+// |         IMPULSE           |
 // +---------------------------+
 // |        | >10us | >120ms   |
 // | _______         ________  |
@@ -43,9 +43,9 @@ C library is aimed for driving 1.69 TFT LCD display 320x240 with ST7789 driver t
 // +---------------------------+
 //              |
 // +---------------------------+
-// |   ST77XX_COLMOD / 0x3A    |
+// |    Pixel Format / 0x3A    |
 // +---------------------------+
-// |           0x55            |
+// | Color mode RGB565 / 0x55  |
 // |      delay >  10ms        |
 // +---------------------------+
 //              |
@@ -65,8 +65,7 @@ C library is aimed for driving 1.69 TFT LCD display 320x240 with ST7789 driver t
 ```
 
 ## Hardware connection MICROCONTROLLER -> LCD
-Library was tested with **_ST7789 1.69″ TFT Display_** and **Arduino UNO R3**. Arduino have not installed bootloader, it was raw Atmega328P microcontroller.
-Communication was done through SPI port interface of Arduino UNO R3. This hardware configuration was chosen for simplicity.
+Library was tested with **_ST7789 1.69″ TFT Display_** and **Arduino UNO R3**. The Arduino was without a bootloader installed, it was only raw Atmega328P microcontroller. Communication was done through SPI port interface of Arduino UNO R3. This hardware configuration was chosen for simplicity.
 | PORT LCD | PORT ATMEGA328P | ARDUINO UNO R3 | Description |
 | :--- | :--- |  :--- | :--- |
 | UCC | +5V | +5V | Supply Voltage +5V |
