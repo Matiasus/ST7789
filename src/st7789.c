@@ -468,7 +468,7 @@ void ST7789_Set_MADCTL (struct st7789 * lcd, uint8_t madctl)
   ST7789_DC_Command (lcd);                              // command (active low)
   SPI_Transfer (ST77XX_MADCTL);                         // Memory Data Access Control
   ST7789_DC_Data (lcd);                                 // data (active high)
-  SPI_Transfer (madctl);                         // set configuration like rotation, refresh,...
+  SPI_Transfer (madctl);                                // set configuration like rotation, refresh,...
   ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 
   if (((0xF0 & madctl) == ST77XX_ROTATE_90) ||
