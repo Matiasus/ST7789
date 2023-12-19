@@ -25,7 +25,7 @@ const uint8_t INIT_ST7789[] PROGMEM = {
   // NUMBER OF COMMANDS
   // ---------------------------------------
   5,                                                    // number of initializers
-  // COMMANDS WITH DELAY AND ARGUMENTS
+  // COMMANDS WITH ARGUMENTS & DELAY
   // ---------------------------------------
   ST77XX_SWRESET, 0, 150,                               // Software reset, no arguments, delay >120ms
   ST77XX_SLPOUT, 0, 150,                                // Out of sleep mode, no arguments, delay >120ms
@@ -34,10 +34,17 @@ const uint8_t INIT_ST7789[] PROGMEM = {
   ST77XX_DISPON, 0, 200                                 // Display turn on
 };
 
+/** @var Location definition */
 uint16_t cacheIndexRow = 0;                             // @var array cache memory char index row
 uint16_t cacheIndexCol = 0;                             // @var array cache memory char index column
 
-struct S_SCREEN Screen;
+/** @var Screen definition */
+struct S_SCREEN Screen = {
+  .width = ST7789_WIDTH,
+  .height = ST7789_HEIGHT,
+  .marginX = ST7789_MARGIN_X,
+  .marginY = ST7789_MARGIN_Y
+};
 
 /**
  * +------------------------------------------------------------------------------------+
@@ -70,10 +77,10 @@ static inline void ST7789_DC_Data (struct st7789 * lcd) { SET_BIT (*(lcd->dc->po
  */
 char ST7789_SetPosition (uint8_t x, uint8_t y)
 {
-  if ((x > MAX_X) && (y > MAX_Y)) {
+  if ((x > ST7789_WIDTH) && (y > ST7789_HEIGHT)) {
     return ST77XX_ERROR;                                // check if coordinates is out of range
   } 
-  else if ((x > MAX_X) && (y <= MAX_Y)) {
+  else if ((x > ST7789_WIDTH) && (y <= ST7789_HEIGHT)) {
     cacheIndexRow = y;                                  // set position y
     cacheIndexCol = 2;                                  // set position x
   } else {
@@ -106,8 +113,8 @@ uint8_t ST7789_DrawString (struct st7789 * lcd, char * str, uint16_t color, enum
     x = cacheIndexCol + (CHARS_COLS_LEN << (size & 0x0F)) + Screen.marginX;
     y = cacheIndexRow + delta_y + Screen.marginY;
 
-    if (x > Screen.x) {
-      if (y > Screen.y) {
+    if (x > Screen.width) {
+      if (y > Screen.height) {
         return ST77XX_ERROR;
       } else {
         cacheIndexRow += delta_y;
@@ -208,8 +215,8 @@ char ST7789_DrawChar (struct st7789 * lcd, char character, uint16_t color, enum 
 void ST7789_ClearScreen (struct st7789 * lcd, uint16_t color) 
 {
   ST7789_CS_Active (lcd);                               // chip enable - active low
-  ST7789_Set_Window (lcd, 0, Screen.x, 0, Screen.y);    // set window
-  ST7789_Send_Color_565 (lcd, color, WINDOW_PIXELS);    // draw pixel by 565 mode
+  ST7789_Set_Window (lcd, 0, Screen.width, 0, Screen.height);
+  ST7789_Send_Color_565 (lcd, color, WINDOW_PIXELS);
   ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 }
 
@@ -406,7 +413,7 @@ void ST7789_InvertColorOff (struct st7789 * lcd)
  *
  * @return  void
  */
-void ST7789_Init (struct st7789 * lcd, uint8_t configuration)
+void ST7789_Init (struct st7789 * lcd, uint8_t madctl)
 {
   // SPI Init (cs, settings)
   // ----------------------------------------------------------------
@@ -438,7 +445,7 @@ void ST7789_Init (struct st7789 * lcd, uint8_t configuration)
   
   // SET CONFIGURATION
   // --------------------------------------
-  ST7789_SetConfiguration (lcd, configuration);
+  ST7789_Set_MADCTL (lcd, madctl);
 }
 
 /**
@@ -455,24 +462,19 @@ void ST7789_Init (struct st7789 * lcd, uint8_t configuration)
  *
  * @return  void
  */
-void ST7789_SetConfiguration (struct st7789 * lcd, uint8_t configuration)
+void ST7789_Set_MADCTL (struct st7789 * lcd, uint8_t madctl)
 {
   ST7789_CS_Active (lcd);                               // chip enable - active low
   ST7789_DC_Command (lcd);                              // command (active low)
-  SPI_Transfer (ST77XX_MADCTL);                         // command
+  SPI_Transfer (ST77XX_MADCTL);                         // Memory Data Access Control
   ST7789_DC_Data (lcd);                                 // data (active high)
-  SPI_Transfer (configuration);                         // set configuration like rotation, refresh,...
+  SPI_Transfer (madctl);                         // set configuration like rotation, refresh,...
   ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 
-  Screen.x = MAX_X;
-  Screen.y = MAX_Y;
-  Screen.marginX = ST7789_MARGIN_X;
-  Screen.marginY = ST7789_MARGIN_Y;
-
-  if (((0xF0 & configuration) == ST77XX_ROTATE_90) ||
-      ((0xF0 & configuration) == ST77XX_ROTATE_270)) {
-    Screen.x = MAX_Y;
-    Screen.y = MAX_X;
+  if (((0xF0 & madctl) == ST77XX_ROTATE_90) ||
+      ((0xF0 & madctl) == ST77XX_ROTATE_270)) {
+    Screen.width = ST7789_HEIGHT;
+    Screen.height = ST7789_WIDTH;
     Screen.marginX = (Screen.marginX << 1) + 10;
     Screen.marginY = 20;
   }
@@ -491,8 +493,8 @@ void ST7789_SetConfiguration (struct st7789 * lcd, uint8_t configuration)
  */
 uint8_t ST7789_Set_Window (struct st7789 * lcd, uint16_t xs, uint16_t xe, uint16_t ys, uint16_t ye)
 {
-  if ((xs > xe) || (xe > Screen.x) ||
-      (ys > ye) || (ye > Screen.y)) {
+  if ((xs > xe) || (xe > Screen.width) ||
+      (ys > ye) || (ye > Screen.height)) {
     return ST77XX_ERROR;                                // out of range
   }
 

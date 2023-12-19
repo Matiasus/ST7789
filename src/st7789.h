@@ -70,15 +70,13 @@
 
   // AREA definition
   // -----------------------------------
-  #define MAX_X                 240                     // max columns / MV = 0 in MADCTL
-  #define MAX_Y                 320UL                   // max rows / MV = 0 in MADCTL
-  #define WINDOW_PIXELS         MAX_X * MAX_Y
-  #define SIZE_X                MAX_X - 1               // columns max counter
-  #define SIZE_Y                MAX_Y - 1               // rows max counter
-  #define CHARS_COLS_LEN        5                       // number of columns for chars
-  #define CHARS_ROWS_LEN        8                       // number of rows for chars
+  #define ST7789_WIDTH          240                     // max columns / MV = 0 in MADCTL
+  #define ST7789_HEIGHT         320UL                   // max rows / MV = 0 in MADCTL
   #define ST7789_MARGIN_X       10
   #define ST7789_MARGIN_Y       45
+  #define WINDOW_PIXELS         ST7789_WIDTH * ST7789_HEIGHT
+  #define CHARS_COLS_LEN        5                       // number of columns for chars
+  #define CHARS_ROWS_LEN        8                       // number of rows for chars
 
   // FUNCTION macros
   // -----------------------------------
@@ -137,7 +135,7 @@
     uint8_t pin;                                        // pin
   };
 
-  /** @struct Lcd */
+  /** @struct Lcd definition */
   struct st7789 {
     struct signal * cs;                                 // Chip Select
     struct signal * bl;                                 // Back Light
@@ -145,12 +143,12 @@
     struct signal * rs;                                 // Reset
   };
 
-  /** @struct X, Y */
+  /** @struct Screen definition */
   struct S_SCREEN {
-    uint16_t x;                                         // x dimension
-    uint16_t y;                                         // y dimension
-    uint16_t marginX;
-    uint16_t marginY;
+    uint16_t width;                                     // Screen Width
+    uint16_t height;                                    // Screen Height
+    uint16_t marginX;                                   // Screen Horizontal Margin
+    uint16_t marginY;                                   // Screen Vertical Margin
   };
 
   /** @enum Font sizes */
@@ -306,6 +304,12 @@
   void ST7789_InvertColorOff (struct st7789 *);
 
   /**
+   * --------------------------------------------------------------------------------------------+
+   * PRIVATE FUNCTIONS
+   * --------------------------------------------------------------------------------------------+
+   */
+
+  /**
    * @desc    Set Configuration LCD
    *
    * @param   struct st7789 * lcd
@@ -313,13 +317,7 @@
    *
    * @return  void
    */
-  void ST7789_SetConfiguration (struct st7789 *, uint8_t);
-
-  /**
-   * --------------------------------------------------------------------------------------------+
-   * PRIVATE FUNCTIONS
-   * --------------------------------------------------------------------------------------------+
-   */
+  void ST7789_Set_MADCTL (struct st7789 *, uint8_t);
 
   /**
    * @desc    Set Window

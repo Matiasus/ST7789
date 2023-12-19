@@ -18,6 +18,7 @@
  */
 #include "src/st7789.h"
 
+/** @var Screen definition */
 extern struct S_SCREEN Screen;
 
 /**
@@ -29,6 +30,7 @@ extern struct S_SCREEN Screen;
  */
 int main (void)
 {
+  uint16_t i;
   // LCD - init struct
   // ----------------------------------------------------------
   struct signal cs = { .ddr = &DDRB, .port = &PORTB, .pin = 2 };          // Chip Select
@@ -40,17 +42,22 @@ int main (void)
 
   // LCD INIT
   // ----------------------------------------------------------
-  ST7789_Init (&lcd, ST77XX_ROTATE_180 | ST77XX_RGB);
+  ST7789_Init (&lcd, ST77XX_ROTATE_270 | ST77XX_RGB);
 
   // DRAWING
   // ----------------------------------------------------------
   ST7789_ClearScreen (&lcd, WHITE);
-
-  ST7789_DrawLine (&lcd, 0, Screen.x, Screen.marginY, Screen.marginY, RED);
-  ST7789_FastLineHorizontal (&lcd, 0, Screen.x, Screen.marginY + 25, BLACK);
-
-  ST7789_SetPosition (40, Screen.marginY + 5);
-  ST7789_DrawString (&lcd, "ST7789V2 DRIVER", RED, X3);
+  for (i=0; i<Screen.height; i=i+5) {
+    ST7789_DrawLine (&lcd, 0, Screen.width, 0, i, RED);
+  }
+  for (i=0; i<Screen.height; i=i+5) {
+    ST7789_DrawLine (&lcd, 0, Screen.width, i, 0, BLUE);
+  }
+  for (i=0; i<30; i++) {
+    ST7789_FastLineHorizontal (&lcd, 0, Screen.width, i, BLACK);
+  }
+  ST7789_SetPosition (75, 5);
+  ST7789_DrawString (&lcd, "ST7789V2 DRIVER", WHITE, X3);
 
   // EXIT
   // ----------------------------------------------------------
