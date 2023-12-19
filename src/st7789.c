@@ -37,12 +37,7 @@ const uint8_t INIT_ST7789[] PROGMEM = {
 uint16_t cacheIndexRow = 0;                             // @var array cache memory char index row
 uint16_t cacheIndexCol = 0;                             // @var array cache memory char index column
 
-struct S_SCREEN Screen = {
-  .x = MAX_X, 
-  .y = MAX_Y,
-  .marginX = 10,
-  .marginY = 10
-};
+struct S_SCREEN Screen;
 
 /**
  * +------------------------------------------------------------------------------------+
@@ -469,11 +464,17 @@ void ST7789_SetConfiguration (struct st7789 * lcd, uint8_t configuration)
   SPI_Transfer (configuration);                         // set configuration like rotation, refresh,...
   ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 
+  Screen.x = MAX_X;
+  Screen.y = MAX_Y;
+  Screen.marginX = ST7789_MARGIN_X;
+  Screen.marginY = ST7789_MARGIN_Y;
+
   if (((0xF0 & configuration) == ST77XX_ROTATE_90) ||
       ((0xF0 & configuration) == ST77XX_ROTATE_270)) {
     Screen.x = MAX_Y;
     Screen.y = MAX_X;
-    Screen.marginX = 25;
+    Screen.marginX = (Screen.marginX << 1) + 10;
+    Screen.marginY = 20;
   }
 }
 
@@ -579,9 +580,9 @@ void ST7789_Reset_HW (struct signal * reset)
 void ST7789_Init_Sequence (struct st7789 * lcd, const uint8_t * list)
 {
   uint8_t arguments;
-  uint8_t loops = pgm_read_byte (list++);
+  uint8_t commands = pgm_read_byte (list++);
 
-  while (loops--) {
+  while (commands--) {
     // COMMAND
     // ------------------------------------
     ST7789_Send_Command (lcd, pgm_read_byte (list++));
@@ -626,23 +627,6 @@ void ST7789_Send_Data_Byte (struct st7789 * lcd, uint8_t data)
   ST7789_CS_Active (lcd);                               // chip enable - active low
   ST7789_DC_Data (lcd);                                 // data (active high)
   SPI_Transfer (data);                                  // transfer
-  ST7789_CS_Idle (lcd);                                 // chip disable - idle high
-}
-
-/**
- * @desc    16bits data send
- *
- * @param   struct st7789 *
- * @param   uint16_t
- *
- * @return  void
- */
-void ST7789_Send_Data_Word (struct st7789 * lcd, uint16_t data)
-{
-  ST7789_CS_Active (lcd);                               // chip enable - active low
-  ST7789_DC_Data (lcd);                                 // data (active high)
-  SPI_Transfer ((uint8_t) (data >> 8));                 // transfer High Byte
-  SPI_Transfer ((uint8_t) data);                        // transfer low Byte
   ST7789_CS_Idle (lcd);                                 // chip disable - idle high
 }
 

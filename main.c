@@ -29,8 +29,6 @@ extern struct S_SCREEN Screen;
  */
 int main (void)
 {
-  int16_t i;
-
   // LCD - init struct
   // ----------------------------------------------------------
   struct signal cs = { .ddr = &DDRB, .port = &PORTB, .pin = 2 };          // Chip Select
@@ -42,21 +40,17 @@ int main (void)
 
   // LCD INIT
   // ----------------------------------------------------------
-  ST7789_Init (&lcd, ST77XX_ROTATE_270 | ST77XX_RGB);
+  ST7789_Init (&lcd, ST77XX_ROTATE_180 | ST77XX_RGB);
 
   // DRAWING
   // ----------------------------------------------------------
   ST7789_ClearScreen (&lcd, WHITE);
-/*
-  for (i = 0; i<Screen.y; i=i+5) {
-    ST7789_DrawLine (&lcd, 0, Screen.x, 0, i, RED);
-  }
-  for (i = 0; i<Screen.y; i=i+5) {
-    ST7789_DrawLine (&lcd, 0, Screen.x, i, 0, BLUE);
-  }
-*/
-  ST7789_SetPosition (20, 30);
-  ST7789_DrawString (&lcd, "STM32 is a family of 32-bit microcontroller integrated circuits by STMicroelectronics. The STM32 chips are grouped into related series that are based around the same 32-bit ARM processor core: Cortex-M0, Cortex-M0+, Cortex-M3, Cortex-M4, Cortex-M7, Cortex-M33. Internally, each microcontroller consists of ARM each microcontroller consists of ARM", BLUE, X3);
+
+  ST7789_DrawLine (&lcd, 0, Screen.x, Screen.marginY, Screen.marginY, RED);
+  ST7789_FastLineHorizontal (&lcd, 0, Screen.x, Screen.marginY + 25, BLACK);
+
+  ST7789_SetPosition (40, Screen.marginY + 5);
+  ST7789_DrawString (&lcd, "ST7789V2 DRIVER", RED, X3);
 
   // EXIT
   // ----------------------------------------------------------

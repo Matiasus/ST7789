@@ -77,6 +77,8 @@
   #define SIZE_Y                MAX_Y - 1               // rows max counter
   #define CHARS_COLS_LEN        5                       // number of columns for chars
   #define CHARS_ROWS_LEN        8                       // number of rows for chars
+  #define ST7789_MARGIN_X       10
+  #define ST7789_MARGIN_Y       45
 
   // FUNCTION macros
   // -----------------------------------
@@ -387,16 +389,6 @@
    * @return  void
    */
   void ST7789_Send_Data_Byte (struct st7789 *, uint8_t);
-
-  /**
-   * @desc    16bits data send
-   *
-   * @param   struct st7789 *
-   * @param   uint16_t
-   *
-   * @return  void
-   */
-  void ST7789_Send_Data_Word (struct st7789 *, uint16_t);
 
   /**
    * @desc    Delay
