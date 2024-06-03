@@ -70,12 +70,12 @@ Library was tested with **_ST7789 1.69″ TFT Display_** and **Arduino UNO R3**.
 | :--- | :--- |  :--- | :--- |
 | UCC | +5V | +5V | Supply Voltage +5V |
 | GND | GND | GND | Ground |
-| DIN | PB3 | D11 | SPI Serial data in / MOSI |
 | CLK | PB5 | D13 | SPI Serial clock signal |
+| DIN | PB3 | D11 | SPI Serial data in / MOSI |
 | CS | PB2 | D10 | SPI Chip Select |
-| DC | PD7 | D7 | SPI data / command; 1=Data, 0=Command |
-| RST | PB0 | D8 | Chip Reset Signal |
 | BL | PB1 | D9 | Backlight control |
+| RST | PB0 | D8 | Chip Reset Signal |
+| DC | PD7 | D7 | SPI data / command; 1=Data, 0=Command |
 
 ### Picture of hardware connection
 <img src="img/hw_connection.png" alt="Hardware connection" width="600">
